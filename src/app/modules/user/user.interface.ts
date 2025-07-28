@@ -3,22 +3,19 @@ export enum Role {
   ADMIN = "ADMIN",
   USER = "USER",
 }
-
-export enum IsActive {
+export enum Status {
   ACTIVE = "ACTIVE",
-  INACTIVE = "INACTIVE",
   BLOCKED = "BLOCKED",
 }
 
 export interface IUser {
   name: string;
   email: string;
-  password?: string;
-  phone?: string;
-  picture?: string;
-  address?: string;
-  isDeleted?: string;
-  isActive?: IsActive;
-  isVerified?: string;
+  password: string;
   role: Role;
+  status: Status;
+  isDeleted?: string;
+  commissionRate?: number; // Only for agents
+  createdAt?: Date;
+  updatedAt?: Date;
 }

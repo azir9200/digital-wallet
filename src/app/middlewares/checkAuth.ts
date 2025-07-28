@@ -5,7 +5,8 @@ import AppError from "../errorHelpers/AppError";
 // import { verifyToken } from "../utils/jwt";
 import { User } from "../modules/user/user.model";
 import httpStatus from "http-status-codes";
-import { IsActive } from "../modules/user/user.interface";
+import { verifyToken } from "../utils/jwt";
+import { Status } from "../modules/user/user.interface";
 
 export const checkAuth =
   (...authRoles: string[]) =>
@@ -26,13 +27,10 @@ export const checkAuth =
       if (!isUserExist) {
         throw new AppError(httpStatus.BAD_REQUEST, "User does not exist");
       }
-      if (
-        isUserExist.isActive === IsActive.BLOCKED ||
-        isUserExist.isActive === IsActive.INACTIVE
-      ) {
+      if (isUserExist.status === Status.BLOCKED) {
         throw new AppError(
           httpStatus.BAD_REQUEST,
-          `User is ${isUserExist.isActive}`
+          `User is ${isUserExist.status}`
         );
       }
 
