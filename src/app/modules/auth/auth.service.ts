@@ -5,6 +5,7 @@ import { IUser } from "../user/user.interface";
 import { User } from "../user/user.model";
 import { envVars } from "../../config/env";
 import { generateToken } from "../../utils/jwt";
+import { createNewAccessTokenWithRefreshToken } from "../../utils/userTokens";
 
 const authLogin = async (payload: Partial<IUser>) => {
   const { email, password } = payload;
@@ -42,7 +43,17 @@ const authLogin = async (payload: Partial<IUser>) => {
     refreshToken,
   };
 };
+const getNewAccessToken = async (refreshToken: string) => {
+  const newAccessToken = await createNewAccessTokenWithRefreshToken(
+    refreshToken
+  );
+
+  return {
+    accessToken: newAccessToken,
+  };
+};
 
 export const AuthServices = {
   authLogin,
+  getNewAccessToken,
 };

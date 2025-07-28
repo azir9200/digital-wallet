@@ -37,18 +37,36 @@ const getAllUsers = async () => {
     },
   };
 };
-const getSingleUser = async () => {
-  const users = await User.find({});
-  const totalUsers = await User.countDocuments();
+//get single user
+const getSingleUser = async (id: string) => {
+  const user = await User.findById(id).select("-password");
   return {
-    data: users,
-    meta: {
-      total: totalUsers,
-    },
+    data: user,
   };
+};
+
+const updateUser = async (userId: string, payload: Partial<IUser>) => {
+  const ifUserExists = await User.findById(userId);
+
+  if (!ifUserExists) {
+    throw new AppError(httpStatus.NOT_FOUND, "User Not Found");
+  }
+  if (payload.password) {
+    payload.password = await bcryptjs.hash(
+      payload.password,
+      envVars.BCRYPT_SALT_ROUND
+    );
+  }
+  const newUpdatedUser = await User.findByIdAndUpdate(userId, payload, {
+    new: true,
+    runValidators: true,
+  });
+
+  return newUpdatedUser;
 };
 export const UserServices = {
   createUser,
   getAllUsers,
   getSingleUser,
+  updateUser,
 };
