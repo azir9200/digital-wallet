@@ -6,6 +6,8 @@ import { User } from "./user.model";
 import { envVars } from "../../config/env";
 import { Wallet } from "../wallet/wallet.model";
 import mongoose from "mongoose";
+import { QueryBuilder } from "../../utils/QueryBuilder";
+import { userSearchableFields } from "./user.constant";
 
 const createUser = async (payload: Partial<IUser>) => {
   const { name, email, password } = payload;
@@ -56,16 +58,35 @@ const createUser = async (payload: Partial<IUser>) => {
   }
 };
 
-const getAllUsers = async () => {
-  const users = await User.find({});
-  const totalUsers = await User.countDocuments();
+const getAllUsers = async (query: Record<string, string>) => {
+  const queryBuilder = new QueryBuilder(Wallet.find(), query || {});
+  const userData = queryBuilder
+    .search(userSearchableFields)
+    .filter()
+    .sort()
+    .fields()
+    .paginate();
+
+  const [data, meta] = await Promise.all([
+    userData.build(),
+    queryBuilder.getMeta(),
+  ]);
   return {
-    data: users,
-    meta: {
-      total: totalUsers,
-    },
+    data,
+    meta,
   };
 };
+
+// const getAllUsers = async () => {
+//   const users = await User.find({});
+//   const totalUsers = await User.countDocuments();
+//   return {
+//     data: users,
+//     meta: {
+//       total: totalUsers,
+//     },
+//   };
+// };
 //get single user
 const getSingleUser = async (id: string) => {
   const user = await User.findById(id).select("-password");

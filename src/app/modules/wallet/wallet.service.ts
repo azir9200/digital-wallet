@@ -10,9 +10,9 @@ import { Wallet } from "./wallet.model";
 // };
 
 const getAllWallet = async (query: Record<string, string>) => {
-  const queryBuilder = new QueryBuilder(Wallet.find(), query);
+  const queryBuilder = new QueryBuilder(Wallet.find(), query || {});
   const walletData = queryBuilder
-    // .search(walletSearchableFields)
+    .search(walletSearchableFields)
     .filter()
     .sort()
     .fields()
