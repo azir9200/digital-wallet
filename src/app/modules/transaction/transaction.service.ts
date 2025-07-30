@@ -6,7 +6,7 @@ import { Wallet } from "../wallet/wallet.model";
 import mongoose from "mongoose";
 import AppError from "../../errorHelpers/AppError";
 
-const createTransaction = async (payload: Partial<ITransaction>) => {
+const createTransfer = async (payload: Partial<ITransaction>) => {
   const { sender, receiver, amount } = payload;
 
   const session = await mongoose.startSession();
@@ -62,6 +62,89 @@ const createTransaction = async (payload: Partial<ITransaction>) => {
     throw error;
   }
 };
+const addMoney = async (userId: string, payload: Partial<ITransaction>) => {
+  const { amount } = payload;
+  const amountNumber = Number(amount);
+
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const existingWallet = await Wallet.findOne({ ownerId: userId }).session(
+      session
+    );
+
+    if (!existingWallet) {
+      throw new AppError(httpStatus.NOT_FOUND, "Wallet not found");
+    }
+
+    existingWallet!.balance! += amountNumber!;
+    await existingWallet.save({ session });
+
+    // Create transaction
+    const transaction = await Transaction.create(
+      [
+        {
+          userId,
+          type: "ADD_MONEY",
+          amount,
+          status: "COMPLETED",
+        },
+      ],
+      { session }
+    );
+    await session.commitTransaction();
+    session.endSession();
+    return transaction[0];
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    throw error;
+  }
+};
+
+const withdrawMoney = async (
+  userId: string,
+  payload: Partial<ITransaction>
+) => {
+  const { amount } = payload;
+  const amountNumber = Number(amount);
+
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const existingWallet = await Wallet.findOne({ ownerId: userId }).session(
+      session
+    );
+
+    if (!existingWallet) {
+      throw new AppError(httpStatus.NOT_FOUND, "Wallet not found");
+    }
+
+    existingWallet!.balance! -= amountNumber!;
+    await existingWallet.save({ session });
+
+    // Create transaction
+    const transaction = await Transaction.create(
+      [
+        {
+          userId,
+          type: "WITHDRAW",
+          amount,
+          status: "COMPLETED",
+        },
+      ],
+      { session }
+    );
+    await session.commitTransaction();
+    session.endSession();
+    return transaction[0];
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    throw error;
+  }
+};
+
 const getAllTransaction = async () => {
   const result = await Transaction.find({});
   const totalTransaction = await Transaction.countDocuments();
@@ -99,7 +182,9 @@ const deleteTransaction = async (id: string) => {
 };
 
 export const TransactionService = {
-  createTransaction,
+  createTransfer,
+  addMoney,
+  withdrawMoney,
   getAllTransaction,
   getSingleTransaction,
   updateTransaction,

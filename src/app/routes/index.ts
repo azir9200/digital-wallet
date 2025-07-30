@@ -20,7 +20,7 @@ const moduleRoutes = [
     route: WalletRoutes,
   },
   {
-    path: "/transaction",
+    path: "/transactions",
     route: TransactionRoutes,
   },
 ];

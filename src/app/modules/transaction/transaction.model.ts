@@ -10,6 +10,7 @@ const decimalTwoPlaces = (value: number) =>
 
 const transactionSchema = new Schema<ITransaction>(
   {
+    userId: { type: Schema.Types.ObjectId, ref: "User" },
     sender: { type: Schema.Types.ObjectId, ref: "User", default: null },
     receiver: { type: Schema.Types.ObjectId, ref: "User", default: null },
     type: { type: String, enum: Object.values(TransactionType) },

@@ -5,9 +5,19 @@ import { Role } from "../user/user.interface";
 
 const router = express.Router();
 
-router.post("/", TransactionController.createTransaction);
+router.post("/transfer", TransactionController.createTransfer);
+router.post(
+  "/addMoney",
+  checkAuth(Role.ADMIN, Role.AGENT, Role.SUPER_ADMIN, Role.USER),
+  TransactionController.addMoney
+);
+router.post(
+  "/withdraw",
+  checkAuth(Role.ADMIN, Role.AGENT, Role.SUPER_ADMIN, Role.USER),
+  TransactionController.withdrawMoney
+);
 router.get("/", TransactionController.getAllTransaction);
-router.get("/:id", TransactionController.getSingleTransaction);
+router.get("/my/:id", TransactionController.getSingleTransaction);
 router.patch(
   "/:id",
   checkAuth(Role.ADMIN, Role.SUPER_ADMIN),

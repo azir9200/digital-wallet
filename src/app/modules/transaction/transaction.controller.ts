@@ -3,12 +3,35 @@ import { catchAsync } from "../../utils/catchAsync";
 import { sendResponse } from "../../utils/sendResponse";
 import { TransactionService } from "./transaction.service";
 
-const createTransaction = catchAsync(async (req: Request, res: Response) => {
-  const result = await TransactionService.createTransaction(req.body);
+const createTransfer = catchAsync(async (req: Request, res: Response) => {
+  const result = await TransactionService.createTransfer(req.body);
   sendResponse(res, {
     statusCode: 201,
     success: true,
     message: "Your transaction made successfully",
+    data: result,
+  });
+});
+
+const addMoney = catchAsync(async (req: Request, res: Response) => {
+  const userId = req.user.id;
+
+  const result = await TransactionService.addMoney(userId, req.body);
+  sendResponse(res, {
+    statusCode: 201,
+    success: true,
+    message: "money added to your account successfully",
+    data: result,
+  });
+});
+const withdrawMoney = catchAsync(async (req: Request, res: Response) => {
+  const userId = req.user.id;
+  console.log("object id", userId, req.user);
+  const result = await TransactionService.withdrawMoney(userId, req.body);
+  sendResponse(res, {
+    statusCode: 201,
+    success: true,
+    message: "money withdraw from your account successfully",
     data: result,
   });
 });
@@ -24,7 +47,7 @@ const getAllTransaction = catchAsync(async (req: Request, res: Response) => {
 });
 const getSingleTransaction = catchAsync(async (req: Request, res: Response) => {
   const id = req.params.id;
-  console.log("object", id);
+
   const result = await TransactionService.getSingleTransaction(id);
 
   sendResponse(res, {
@@ -58,7 +81,9 @@ const deleteTransaction = catchAsync(async (req: Request, res: Response) => {
 });
 
 export const TransactionController = {
-  createTransaction,
+  createTransfer,
+  addMoney,
+  withdrawMoney,
   getAllTransaction,
   getSingleTransaction,
   updateTransaction,

@@ -8,7 +8,7 @@ import AppError from "../../errorHelpers/AppError";
 
 const authLogin = catchAsync(async (req: Request, res: Response) => {
   const loginInfo = await AuthServices.authLogin(req.body);
-  // console.log("login info", loginInfo);
+  console.log("login info", loginInfo);
   setAuthCookie(res, loginInfo);
   sendResponse(res, {
     success: true,

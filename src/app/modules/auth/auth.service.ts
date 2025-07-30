@@ -24,6 +24,7 @@ const authLogin = async (payload: Partial<IUser>) => {
   }
 
   const jwtPayload = {
+    id: isUserExist._id,
     email: isUserExist.email,
     role: isUserExist.role,
   };

@@ -16,6 +16,7 @@ export enum TransactionStatus {
 
 export interface ITransaction {
   _id?: Types.ObjectId;
+  userId: Types.ObjectId;
   sender: Types.ObjectId | null;
   receiver: Types.ObjectId | null;
   type?: TransactionType;
