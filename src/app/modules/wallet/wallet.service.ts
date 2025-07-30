@@ -26,15 +26,6 @@ const getAllWallet = async (query: Record<string, string>) => {
     data,
     meta,
   };
-
-  // const wallet = await Wallet.find({});
-  // const totalWallet = await Wallet.countDocuments();
-  // return {
-  //   data: wallet,
-  //   meta: {
-  //     total: totalWallet,
-  //   },
-  // };
 };
 const getSingleWallet = async (id: string) => {
   const wallet = await Wallet.findById({ _id: id });
@@ -45,12 +36,33 @@ const getSingleWallet = async (id: string) => {
 const updateWallet = async (id: string, payload: Partial<IWallet>) => {
   const existingWallet = await Wallet.findById(id);
   if (!existingWallet) {
-    throw new Error("Division not found.");
+    throw new Error("Wallet not found.");
+  }
+  // const ownerId = id;
+
+  // if (existingWallet.ownerId.toString() !== ownerId) {
+  //   throw new Error("Unauthorized: You do not own this wallet.");
+  // }
+  const allowedFields: (keyof IWallet)[] = [
+    "accountType",
+    "dailyLimit",
+    "monthlyLimit",
+  ];
+
+  if (!allowedFields) {
+    throw new Error("Your input field does not exists !");
+  }
+  const filteredPayload: Partial<IWallet> = {};
+  for (const key of allowedFields) {
+    if (key in payload) {
+      filteredPayload[key] = payload[key];
+    }
   }
   const updatedWallet = await Wallet.findByIdAndUpdate(id, payload, {
     new: true,
     runValidators: true,
   });
+  console.log("updated wallet", updatedWallet);
 
   return updatedWallet;
 };

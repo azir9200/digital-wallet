@@ -16,7 +16,10 @@ const createUser = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getAllUsers = catchAsync(async (req: Request, res: Response) => {
-  const result = await UserServices.getAllUsers();
+  const query = req.query;
+  const result = await UserServices.getAllUsers(
+    query as Record<string, string>
+  );
 
   sendResponse(res, {
     success: true,
@@ -50,10 +53,20 @@ const updateUser = catchAsync(async (req: Request, res: Response) => {
     data: user,
   });
 });
+const deleteUser = catchAsync(async (req: Request, res: Response) => {
+  const result = await UserServices.deleteUser(req.params.id);
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Your Wallet is deleted",
+    data: result,
+  });
+});
 
 export const UserControllers = {
   createUser,
   getAllUsers,
   getSingleUser,
   updateUser,
+  deleteUser,
 };

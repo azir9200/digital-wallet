@@ -2,41 +2,72 @@ import { Server } from "http";
 import mongoose from "mongoose";
 import app from "./app";
 import { envVars } from "./app/config/env";
+import { seedSuperAdmin } from "./app/utils/seedSuperAdmin";
 
 let server: Server;
 
 const startServer = async () => {
   try {
     await mongoose.connect(envVars.DB_URL);
-    console.log("✅ Connected to MongoDB");
 
-    // Start Express server
     server = app.listen(envVars.PORT, () => {
       console.log(`🚀 Server running on port ${envVars.PORT}`);
     });
-
-    // Graceful shutdown on SIGINT/SIGTERM
-    process.on("SIGINT", shutdown);
-    process.on("SIGTERM", shutdown);
   } catch (error) {
     console.error("❌ Failed to start server:", error);
     process.exit(1);
   }
 };
 
-const shutdown = async () => {
-  // console.log("\n🛑 Shutting down server...");
+startServer();
+(async () => {
+  await startServer();
+  await seedSuperAdmin();
+})();
+
+process.on("SIGTERM", () => {
+  console.log("SIGTERM signal received... Server shutting down..");
 
   if (server) {
     server.close(() => {
-      // console.log("🛑 HTTP server closed");
+      process.exit(1);
     });
   }
 
-  await mongoose.disconnect();
-  // console.log("🛑 MongoDB disconnected");
+  process.exit(1);
+});
 
-  process.exit(0);
-};
+process.on("SIGINT", () => {
+  console.log("SIGINT signal received... Server shutting down..");
 
-startServer();
+  if (server) {
+    server.close(() => {
+      process.exit(1);
+    });
+  }
+
+  process.exit(1);
+});
+process.on("unhandledRejection", (err) => {
+  console.log("Unhandled Rejecttion detected... Server shutting down..", err);
+
+  if (server) {
+    server.close(() => {
+      process.exit(1);
+    });
+  }
+
+  process.exit(1);
+});
+
+process.on("uncaughtException", (err) => {
+  console.log("Uncaught Exception detected... Server shutting down..", err);
+
+  if (server) {
+    server.close(() => {
+      process.exit(1);
+    });
+  }
+
+  process.exit(1);
+});

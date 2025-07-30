@@ -83,9 +83,15 @@ npm install
 ### 1. Clone the repo
 env
 Copy
-Edit
+
 PORT=5000
 DATABASE_URL=mongodb://localhost:27017/digital-wallet
 JWT_SECRET=your_jwt_secret
 JWT_EXPIRES_IN=1d
-```
+
+Video Link : https://www.youtube.com/watch?v=vPa81Vvryr4
+
+Github Link:  
+Deploy Link: 
+
+

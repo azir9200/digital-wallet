@@ -25,9 +25,8 @@ const getAllWallet = catchAsync(async (req: Request, res: Response) => {
 });
 const getSingleWallet = catchAsync(async (req: Request, res: Response) => {
   const id = req.params.id;
-  console.log("object", id);
+
   const result = await WalletService.getSingleWallet(id);
-  console.log(" ssdd", result);
   sendResponse(res, {
     statusCode: 200,
     success: true,
@@ -38,12 +37,12 @@ const getSingleWallet = catchAsync(async (req: Request, res: Response) => {
 
 const updateWallet = catchAsync(async (req: Request, res: Response) => {
   const id = req.params.id;
-
+  console.log("wallet control", id);
   const result = await WalletService.updateWallet(id, req.body);
   sendResponse(res, {
     statusCode: 200,
     success: true,
-    message: "Your wallet info id updated",
+    message: "Wallet info is updated",
     data: result,
   });
 });
@@ -53,7 +52,7 @@ const deleteWallet = catchAsync(async (req: Request, res: Response) => {
   sendResponse(res, {
     statusCode: 200,
     success: true,
-    message: "Your Wallet is deleted",
+    message: "This Wallet is deleted",
     data: result,
   });
 });

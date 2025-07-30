@@ -9,48 +9,102 @@ import mongoose from "mongoose";
 import { QueryBuilder } from "../../utils/QueryBuilder";
 import { userSearchableFields } from "./user.constant";
 
+// const createUser = async (payload: Partial<IUser>) => {
+//   const { name, email, password } = payload;
+
+//   const isUserExist = await User.findOne({ email });
+
+//   if (isUserExist) {
+//     throw new AppError(httpStatus.BAD_REQUEST, "User Already Exist");
+//   }
+//   const session = await mongoose.startSession();
+
+//   try {
+//     session.startTransaction();
+
+//     const hashedPassword = await bcryptjs.hash(
+//       password as string,
+//       Number(envVars.BCRYPT_SALT_ROUND)
+//     );
+
+//     //user create
+//     const newUser = await User.create(
+//       [
+//         {
+//           name,
+//           email,
+//           password: hashedPassword,
+//         },
+//       ],
+//       { session }
+//     );
+//     await Wallet.create([{ ownerId: newUser[0]._id }], {
+//       session,
+//     });
+
+//     await session.commitTransaction();
+//     session.endSession();
+//     return {
+//       user: newUser[0],
+//     };
+//   } catch (error) {
+//     await session.abortTransaction();
+//     session.endSession();
+//     console.log(error);
+//     throw new AppError(
+//       httpStatus.INTERNAL_SERVER_ERROR,
+//       "Failed to create user and wallet"
+//     );
+//   }
+// };
+
 const createUser = async (payload: Partial<IUser>) => {
   const { name, email, password } = payload;
 
-  const isUserExist = await User.findOne({ email });
-
-  if (isUserExist) {
-    throw new AppError(httpStatus.BAD_REQUEST, "User Already Exist");
+  if (!name || !email || !password) {
+    throw new AppError(httpStatus.BAD_REQUEST, "Missing required fields");
   }
+
+  const isUserExist = await User.findOne({ email });
+  if (isUserExist) {
+    throw new AppError(httpStatus.BAD_REQUEST, "User Already Exists");
+  }
+
   const session = await mongoose.startSession();
 
   try {
     session.startTransaction();
 
     const hashedPassword = await bcryptjs.hash(
-      password as string,
+      password,
       Number(envVars.BCRYPT_SALT_ROUND)
     );
 
-    //user create
-    const newUser = await User.create(
-      [
-        {
-          name,
-          email,
-          password: hashedPassword,
-        },
-      ],
-      { session }
-    );
-    await Wallet.create([{ ownerId: newUser[0]._id }], {
-      session,
+    const newUser = new User({
+      name,
+      email,
+      password: hashedPassword,
     });
+
+    await newUser.save({ session });
+
+    const newWallet = new Wallet({
+      ownerId: newUser._id,
+    });
+
+    await newWallet.save({ session });
 
     await session.commitTransaction();
     session.endSession();
+
     return {
-      user: newUser[0],
+      user: newUser,
+      wallet: newWallet,
     };
   } catch (error) {
     await session.abortTransaction();
     session.endSession();
-    console.log(error);
+    console.error(error);
     throw new AppError(
       httpStatus.INTERNAL_SERVER_ERROR,
       "Failed to create user and wallet"
@@ -59,7 +113,7 @@ const createUser = async (payload: Partial<IUser>) => {
 };
 
 const getAllUsers = async (query: Record<string, string>) => {
-  const queryBuilder = new QueryBuilder(Wallet.find(), query || {});
+  const queryBuilder = new QueryBuilder(User.find(), query || {});
   const userData = queryBuilder
     .search(userSearchableFields)
     .filter()
@@ -77,17 +131,6 @@ const getAllUsers = async (query: Record<string, string>) => {
   };
 };
 
-// const getAllUsers = async () => {
-//   const users = await User.find({});
-//   const totalUsers = await User.countDocuments();
-//   return {
-//     data: users,
-//     meta: {
-//       total: totalUsers,
-//     },
-//   };
-// };
-//get single user
 const getSingleUser = async (id: string) => {
   const user = await User.findById(id).select("-password");
   return {
@@ -114,9 +157,14 @@ const updateUser = async (userId: string, payload: Partial<IUser>) => {
 
   return newUpdatedUser;
 };
+const deleteUser = async (id: string) => {
+  await Wallet.findByIdAndDelete(id);
+  return null;
+};
 export const UserServices = {
   createUser,
   getAllUsers,
   getSingleUser,
   updateUser,
+  deleteUser,
 };

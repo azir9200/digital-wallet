@@ -12,7 +12,11 @@ router.post(
   validateRequest(createUserZodSchema),
   UserControllers.createUser
 );
-router.get("/all-users", UserControllers.getAllUsers);
+router.get(
+  "/all-users",
+  checkAuth(Role.ADMIN, Role.SUPER_ADMIN),
+  UserControllers.getAllUsers
+);
 
 router.get(
   "/:id",
@@ -24,6 +28,11 @@ router.patch(
   validateRequest(updateUserZodSchema),
   checkAuth(...Object.values(Role)),
   UserControllers.updateUser
+);
+router.delete(
+  "/:id",
+  checkAuth(Role.ADMIN, Role.SUPER_ADMIN),
+  UserControllers.deleteUser
 );
 
 export const UserRoutes = router;

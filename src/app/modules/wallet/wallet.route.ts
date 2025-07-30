@@ -5,7 +5,11 @@ import { Role } from "../user/user.interface";
 const router = express.Router();
 
 // router.post("/", WalletController.createWallet);
-router.get("/", WalletController.getAllWallet);
+router.get(
+  "/",
+  checkAuth(Role.ADMIN, Role.SUPER_ADMIN),
+  WalletController.getAllWallet
+);
 router.get("/:id", WalletController.getSingleWallet);
 router.patch(
   "/:id",

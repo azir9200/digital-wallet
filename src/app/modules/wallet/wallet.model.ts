@@ -1,5 +1,5 @@
 import { model, Schema, Types } from "mongoose";
-import { IWallet, WalletStatus } from "./wallet.interface";
+import { AccountType, IWallet, WalletStatus } from "./wallet.interface";
 
 const WalletSchema = new Schema<IWallet>(
   {
@@ -11,6 +11,14 @@ const WalletSchema = new Schema<IWallet>(
       enum: Object.values(WalletStatus),
       default: WalletStatus.ACTIVE,
     },
+    accountType: {
+      type: String,
+      enum: Object.values(AccountType),
+      default: AccountType.PERSONAL,
+    },
+
+    dailyLimit: { type: Number, default: 50 },
+    monthlyLimit: { type: Number, default: 500 },
   },
   {
     timestamps: true,

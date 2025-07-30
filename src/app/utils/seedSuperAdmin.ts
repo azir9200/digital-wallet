@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import bcryptjs from "bcryptjs";
 import { envVars } from "../config/env";
 import { IUser, Role, Status } from "../modules/user/user.interface";
@@ -30,8 +31,8 @@ export const seedSuperAdmin = async () => {
     };
 
     const superadmin = await User.create(payload);
-    console.log("Super Admin Created Successfuly! \n");
-    console.log(superadmin);
+    console.log("Super Admin Created Successfully! \n");
+    // console.log(superadmin);
   } catch (error) {
     console.log(error);
   }
