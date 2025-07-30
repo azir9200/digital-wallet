@@ -16,7 +16,21 @@ router.post(
   checkAuth(Role.ADMIN, Role.AGENT, Role.SUPER_ADMIN, Role.USER),
   TransactionController.withdrawMoney
 );
-router.get("/", TransactionController.getAllTransaction);
+router.post(
+  "/cashIn",
+  checkAuth(Role.AGENT),
+  TransactionController.withdrawMoney
+);
+// router.post(
+//   "/cashOut",
+//   checkAuth(Role.ADMIN, Role.AGENT, Role.SUPER_ADMIN, Role.USER),
+//   TransactionController.withdrawMoney
+// );
+router.get(
+  "/",
+  checkAuth(Role.ADMIN, Role.SUPER_ADMIN),
+  TransactionController.getAllTransaction
+);
 router.get("/my/:id", TransactionController.getSingleTransaction);
 router.patch(
   "/:id",

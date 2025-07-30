@@ -144,6 +144,61 @@ const withdrawMoney = async (
     throw error;
   }
 };
+const cashIn = async (agentId: string, payload: Partial<ITransaction>) => {
+  const { userId, amount } = payload;
+  const amountNumber = Number(amount);
+
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const existingAgent = await Wallet.findOne({ ownerId: agentId }).session(
+      session
+    );
+    const existingUser = await Wallet.findOne({ ownerId: userId }).session(
+      session
+    );
+
+    if (!existingAgent) {
+      throw new AppError(httpStatus.NOT_FOUND, "Agent not found");
+    }
+    if (!existingUser) {
+      throw new AppError(httpStatus.NOT_FOUND, "User not found");
+    }
+
+    if (existingAgent!.balance! < amount!) {
+      throw new AppError(
+        httpStatus.NOT_FOUND,
+        "Agent has insufficient balance!"
+      );
+    }
+
+    existingAgent!.balance! -= amountNumber!;
+    existingUser!.balance! += amountNumber!;
+    await existingAgent.save({ session });
+    await existingUser.save({ session });
+
+    // Create transaction
+    const transaction = await Transaction.create(
+      [
+        {
+          sender: agentId,
+          receiver: userId,
+          type: "CASH_IN",
+          amount,
+          status: "COMPLETED",
+        },
+      ],
+      { session }
+    );
+    await session.commitTransaction();
+    session.endSession();
+    return transaction[0];
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    throw error;
+  }
+};
 
 const getAllTransaction = async () => {
   const result = await Transaction.find({});
@@ -185,6 +240,7 @@ export const TransactionService = {
   createTransfer,
   addMoney,
   withdrawMoney,
+  cashIn,
   getAllTransaction,
   getSingleTransaction,
   updateTransaction,

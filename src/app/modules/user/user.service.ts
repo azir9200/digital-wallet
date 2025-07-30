@@ -59,12 +59,8 @@ import { userSearchableFields } from "./user.constant";
 // };
 
 const createUser = async (payload: Partial<IUser>) => {
-  const { name, email, password } = payload;
-
-  if (!name || !email || !password) {
-    throw new AppError(httpStatus.BAD_REQUEST, "Missing required fields");
-  }
-
+  const { name, email, password, role } = payload;
+  console.log("role", role);
   const isUserExist = await User.findOne({ email });
   if (isUserExist) {
     throw new AppError(httpStatus.BAD_REQUEST, "User Already Exists");
@@ -83,6 +79,7 @@ const createUser = async (payload: Partial<IUser>) => {
     const newUser = new User({
       name,
       email,
+      role,
       password: hashedPassword,
     });
 
