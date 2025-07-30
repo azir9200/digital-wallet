@@ -1,3 +1,5 @@
+import { Types } from "mongoose";
+
 export enum TransactionType {
   ADD_MONEY = "ADD_MONEY",
   WITHDRAW = "WITHDRAW",
@@ -13,14 +15,14 @@ export enum TransactionStatus {
 }
 
 export interface ITransaction {
-  from?: string;
-  to?: string;
+  _id?: Types.ObjectId;
+  sender: Types.ObjectId | null;
+  receiver: Types.ObjectId | null;
   type: TransactionType;
   amount: number;
   fee?: number;
   commission?: number;
   status: TransactionStatus;
-  performedBy: string;
   createdAt?: Date;
   updatedAt?: Date;
 }

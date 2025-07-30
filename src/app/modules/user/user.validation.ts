@@ -13,7 +13,7 @@ export const createUserZodSchema = z.object({
     .max(100, { message: "Email cannot exceed 100 characters." }),
   password: z
     .string()
-    .min(8, { message: "Password must be at least 6 characters long." }),
+    .min(6, { message: "Password must be at least 6 characters long." }),
 });
 
 export const updateUserZodSchema = z.object({

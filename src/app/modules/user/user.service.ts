@@ -4,6 +4,8 @@ import AppError from "../../errorHelpers/AppError";
 import { IUser } from "./user.interface";
 import { User } from "./user.model";
 import { envVars } from "../../config/env";
+import { Wallet } from "../wallet/wallet.model";
+import mongoose from "mongoose";
 
 const createUser = async (payload: Partial<IUser>) => {
   const { name, email, password } = payload;
@@ -13,18 +15,45 @@ const createUser = async (payload: Partial<IUser>) => {
   if (isUserExist) {
     throw new AppError(httpStatus.BAD_REQUEST, "User Already Exist");
   }
-  const hashedPassword = await bcryptjs.hash(
-    password as string,
-    Number(envVars.BCRYPT_SALT_ROUND)
-  );
+  const session = await mongoose.startSession();
 
-  const user = await User.create({
-    name,
-    email,
-    password: hashedPassword,
-  });
+  try {
+    session.startTransaction();
 
-  return user;
+    const hashedPassword = await bcryptjs.hash(
+      password as string,
+      Number(envVars.BCRYPT_SALT_ROUND)
+    );
+
+    //user create
+    const newUser = await User.create(
+      [
+        {
+          name,
+          email,
+          password: hashedPassword,
+        },
+      ],
+      { session }
+    );
+    await Wallet.create([{ ownerId: newUser[0]._id }], {
+      session,
+    });
+
+    await session.commitTransaction();
+    session.endSession();
+    return {
+      user: newUser[0],
+    };
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    console.log(error);
+    throw new AppError(
+      httpStatus.INTERNAL_SERVER_ERROR,
+      "Failed to create user and wallet"
+    );
+  }
 };
 
 const getAllUsers = async () => {

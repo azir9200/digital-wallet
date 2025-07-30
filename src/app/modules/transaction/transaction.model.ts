@@ -1,12 +1,16 @@
 import { model, Schema } from "mongoose";
-import { ITransaction, TransactionStatus } from "./transaction.interface";
+import {
+  ITransaction,
+  TransactionStatus,
+  TransactionType,
+} from "./transaction.interface";
 
 const transactionSchema = new Schema<ITransaction>(
   {
-    from: { type: String },
-    to: { type: String },
-    type: { type: String },
-    amount: { type: Number },
+    sender: { type: Schema.Types.ObjectId, ref: "User", default: null },
+    receiver: { type: Schema.Types.ObjectId, ref: "User", default: null },
+    type: { type: String, enum: Object.values(TransactionType) },
+   amount: { type: Number, required: true, min: 1 },
     fee: { type: Number },
     commission: { type: Number },
     status: {
@@ -19,8 +23,4 @@ const transactionSchema = new Schema<ITransaction>(
     timestamps: true,
   }
 );
-
-export const Transaction = model<ITransaction>(
-  "Transaction",
-  transactionSchema
-);
+export const Transaction = model<ITransaction>("Transaction", transactionSchema);
