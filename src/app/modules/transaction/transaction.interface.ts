@@ -18,11 +18,11 @@ export interface ITransaction {
   _id?: Types.ObjectId;
   sender: Types.ObjectId | null;
   receiver: Types.ObjectId | null;
-  type: TransactionType;
+  type?: TransactionType;
   amount: number;
   fee?: number;
   commission?: number;
-  status: TransactionStatus;
+  status?: TransactionStatus;
   createdAt?: Date;
   updatedAt?: Date;
 }

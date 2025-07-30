@@ -3,18 +3,18 @@ import { catchAsync } from "../../utils/catchAsync";
 import { WalletService } from "./wallet.service";
 import { sendResponse } from "../../utils/sendResponse";
 
-const createWallet = catchAsync(async (req: Request, res: Response) => {
-  const result = await WalletService.createWallet(req.body);
-  sendResponse(res, {
-    statusCode: 201,
-    success: true,
-    message: "Your Wallet created successfully",
-    data: result,
-  });
-});
+// const createWallet = catchAsync(async (req: Request, res: Response) => {
+//   const result = await WalletService.createWallet(req.body);
+//   sendResponse(res, {
+//     statusCode: 201,
+//     success: true,
+//     message: "Your Wallet created successfully",
+//     data: result,
+//   });
+// });
 
 const getAllWallet = catchAsync(async (req: Request, res: Response) => {
-  const result = await WalletService.getAllWallet();
+  const result = await WalletService.getAllWallet(req.body);
   sendResponse(res, {
     statusCode: 200,
     success: true,
@@ -59,7 +59,6 @@ const deleteWallet = catchAsync(async (req: Request, res: Response) => {
 });
 
 export const WalletController = {
-  createWallet,
   getAllWallet,
   getSingleWallet,
   updateWallet,

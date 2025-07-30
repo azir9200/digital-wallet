@@ -1,51 +1,107 @@
-import status from "http-status-codes";
-import {
-  ITransaction,
-  TransactionStatus,
-  TransactionType,
-} from "./transaction.interface";
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+import httpStatus from "http-status-codes";
+import { ITransaction } from "./transaction.interface";
 import { Transaction } from "./transaction.model";
 import { Wallet } from "../wallet/wallet.model";
-import { Types } from "mongoose";
+import mongoose from "mongoose";
+import AppError from "../../errorHelpers/AppError";
 
-interface CreateTransactionPayload {
-  sender: Types.ObjectId;
-  receiver: Types.ObjectId;
-  amount: number;
-}
-
-const createTransaction = async (payload: CreateTransactionPayload) => {
+const createTransaction = async (payload: Partial<ITransaction>) => {
   const { sender, receiver, amount } = payload;
 
-  const senderWallet = await Wallet.findOne({ user: sender });
-  const receiverWallet = await Wallet.findOne({ user: receiver });
+  const session = await mongoose.startSession();
+  session.startTransaction();
 
-  if (!senderWallet || !receiverWallet) {
-    throw new Error("Sender or receiver wallet not found");
+  try {
+    // Find sender and receiver wallets
+    const senderWallet = await Wallet.findOne({ ownerId: sender }).session(
+      session
+    );
+    const receiverWallet = await Wallet.findOne({ ownerId: receiver }).session(
+      session
+    );
+
+    if (!senderWallet || !receiverWallet) {
+      throw new AppError(
+        httpStatus.NOT_FOUND,
+        "Sender or receiver wallet not found"
+      );
+    }
+
+    if (senderWallet.balance! < amount!) {
+      throw new AppError(httpStatus.BAD_REQUEST, "Insufficient balance");
+    }
+
+    // Update balances
+    senderWallet!.balance! -= amount!;
+    receiverWallet!.balance! += amount!;
+
+    await senderWallet.save({ session });
+    await receiverWallet.save({ session });
+
+    // Create transaction
+    const transaction = await Transaction.create(
+      [
+        {
+          sender,
+          receiver,
+          amount,
+          status: "COMPLETED",
+        },
+      ],
+      { session }
+    );
+
+    await session.commitTransaction();
+    session.endSession();
+
+    return transaction[0];
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    throw error;
   }
-
-  if (senderWallet?.balance < amount) {
-    throw new Error("Insufficient balance");
+};
+const getAllTransaction = async () => {
+  const result = await Transaction.find({});
+  const totalTransaction = await Transaction.countDocuments();
+  return {
+    data: result,
+    meta: {
+      total: totalTransaction,
+    },
+  };
+};
+const getSingleTransaction = async (id: string) => {
+  const result = await Transaction.findById({ _id: id });
+  return {
+    data: result,
+  };
+};
+const updateTransaction = async (
+  id: string,
+  payload: Partial<ITransaction>
+) => {
+  const existingWallet = await Transaction.findById(id);
+  if (!existingWallet) {
+    throw new Error("Transaction not found.");
   }
-
-  senderWallet.balance -= amount;
-  receiverWallet.balance += amount;
-
-  await senderWallet.save();
-  await receiverWallet.save();
-
-  // Create transaction record
-  const transaction = await Transaction.create({
-    sender,
-    receiver,
-    amount,
-    type: TransactionType.SEND,
-    status: TransactionStatus.COMPLETED,
+  const updatedTransaction = await Transaction.findByIdAndUpdate(id, payload, {
+    new: true,
+    runValidators: true,
   });
 
-  return transaction;
+  return updatedTransaction;
+};
+const deleteTransaction = async (id: string) => {
+  await Transaction.findByIdAndDelete(id);
+  return null;
 };
 
 export const TransactionService = {
   createTransaction,
+  getAllTransaction,
+  getSingleTransaction,
+  updateTransaction,
+  deleteTransaction,
 };
