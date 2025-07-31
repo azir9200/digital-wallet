@@ -28,10 +28,9 @@ const getAllWallet = async (query: Record<string, string>) => {
   };
 };
 const getSingleWallet = async (id: string) => {
-  const wallet = await Wallet.findById({ _id: id });
-  return {
-    data: wallet,
-  };
+  const wallet = await Wallet.findById({ ownerId: id });
+  console.log(wallet);
+  return wallet;
 };
 const updateWallet = async (id: string, payload: Partial<IWallet>) => {
   const existingWallet = await Wallet.findById(id);

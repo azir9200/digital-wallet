@@ -31,7 +31,7 @@ const getSingleWallet = catchAsync(async (req: Request, res: Response) => {
     statusCode: 200,
     success: true,
     message: "Your Wallet retrieved Successfully !",
-    data: result.data,
+    data: result,
   });
 });
 

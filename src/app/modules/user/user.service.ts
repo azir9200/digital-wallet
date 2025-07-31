@@ -61,6 +61,7 @@ import { userSearchableFields } from "./user.constant";
 const createUser = async (payload: Partial<IUser>) => {
   const { name, email, password, role } = payload;
   console.log("role", role);
+  console.log("apyload", payload);
   const isUserExist = await User.findOne({ email });
   if (isUserExist) {
     throw new AppError(httpStatus.BAD_REQUEST, "User Already Exists");

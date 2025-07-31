@@ -164,7 +164,7 @@ const cashIn = async (agentId: string, payload: Partial<ITransaction>) => {
     if (!existingUser) {
       throw new AppError(httpStatus.NOT_FOUND, "User not found");
     }
-
+    console.log("balance", existingAgent);
     if (existingAgent!.balance! < amount!) {
       throw new AppError(
         httpStatus.NOT_FOUND,
@@ -184,6 +184,61 @@ const cashIn = async (agentId: string, payload: Partial<ITransaction>) => {
           sender: agentId,
           receiver: userId,
           type: "CASH_IN",
+          amount,
+          status: "COMPLETED",
+        },
+      ],
+      { session }
+    );
+    await session.commitTransaction();
+    session.endSession();
+    return transaction[0];
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    throw error;
+  }
+};
+const cashOut = async (userId: string, payload: Partial<ITransaction>) => {
+  const { agentId, amount } = payload;
+  const amountNumber = Number(amount);
+
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const existingAgent = await Wallet.findOne({ ownerId: agentId }).session(
+      session
+    );
+    const existingUser = await Wallet.findOne({ ownerId: userId }).session(
+      session
+    );
+
+    if (!existingAgent) {
+      throw new AppError(httpStatus.NOT_FOUND, "Agent not found");
+    }
+    if (!existingUser) {
+      throw new AppError(httpStatus.NOT_FOUND, "User not found");
+    }
+
+    if (existingUser!.balance! < amount!) {
+      throw new AppError(
+        httpStatus.NOT_FOUND,
+        "User has insufficient balance!"
+      );
+    }
+
+    existingUser!.balance! -= amountNumber!;
+    existingAgent!.balance! += amountNumber!;
+    await existingAgent.save({ session });
+    await existingUser.save({ session });
+
+    // Create transaction
+    const transaction = await Transaction.create(
+      [
+        {
+          sender: userId,
+          receiver: agentId,
+          type: "CASH_OUT",
           amount,
           status: "COMPLETED",
         },
@@ -241,6 +296,7 @@ export const TransactionService = {
   addMoney,
   withdrawMoney,
   cashIn,
+  cashOut,
   getAllTransaction,
   getSingleTransaction,
   updateTransaction,

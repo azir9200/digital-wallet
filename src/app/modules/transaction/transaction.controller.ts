@@ -46,6 +46,17 @@ const cashIn = catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 });
+const cashOut = catchAsync(async (req: Request, res: Response) => {
+  const agentId = req.user.id;
+
+  const result = await TransactionService.cashOut(agentId, req.body);
+  sendResponse(res, {
+    statusCode: 201,
+    success: true,
+    message: "money cash out to from account successfully",
+    data: result,
+  });
+});
 const getAllTransaction = catchAsync(async (req: Request, res: Response) => {
   const result = await TransactionService.getAllTransaction();
   sendResponse(res, {
@@ -96,6 +107,7 @@ export const TransactionController = {
   addMoney,
   withdrawMoney,
   cashIn,
+  cashOut,
   getAllTransaction,
   getSingleTransaction,
   updateTransaction,
