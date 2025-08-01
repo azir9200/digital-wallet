@@ -89,7 +89,8 @@ DATABASE_URL=mongodb://localhost:27017/digital-wallet
 JWT_SECRET=your_jwt_secret
 JWT_EXPIRES_IN=1d
 
-Video Link : https://www.youtube.com/watch?v=vPa81Vvryr4
+Video Link : https://youtu.be/1UhuyhLqAfc
+# Video Link : https://www.youtube.com/watch?v=vPa81Vvryr4
 
 Github Link:  https://github.com/azir9200/digital-wallet
 Deploy Link:

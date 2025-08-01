@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { QueryBuilder } from "../../utils/QueryBuilder";
 import { walletSearchableFields } from "./wallet.constant";
 import { IWallet } from "./wallet.interface";
@@ -52,11 +53,12 @@ const updateWallet = async (id: string, payload: Partial<IWallet>) => {
     throw new Error("Your input field does not exists !");
   }
   const filteredPayload: Partial<IWallet> = {};
-  for (const key of allowedFields) {
-    if (key in payload) {
-      filteredPayload[key] = payload[key];
-    }
+for (const key of allowedFields) {
+  const value = payload[key];
+  if (typeof value !== "undefined") {
+    (filteredPayload as Record<string, any>)[key] = value;
   }
+}
   const updatedWallet = await Wallet.findByIdAndUpdate(id, payload, {
     new: true,
     runValidators: true,
