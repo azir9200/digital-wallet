@@ -29,8 +29,8 @@ const getAllWallet = async (query: Record<string, string>) => {
   };
 };
 const getSingleWallet = async (id: string) => {
-  const wallet = await Wallet.findById({ ownerId: id });
-  console.log(wallet);
+  const wallet = await Wallet.findOne({ ownerId: id }).populate("ownerId");
+  // console.log(wallet);
   return wallet;
 };
 const updateWallet = async (id: string, payload: Partial<IWallet>) => {
@@ -38,11 +38,7 @@ const updateWallet = async (id: string, payload: Partial<IWallet>) => {
   if (!existingWallet) {
     throw new Error("Wallet not found.");
   }
-  // const ownerId = id;
 
-  // if (existingWallet.ownerId.toString() !== ownerId) {
-  //   throw new Error("Unauthorized: You do not own this wallet.");
-  // }
   const allowedFields: (keyof IWallet)[] = [
     "accountType",
     "dailyLimit",
@@ -53,17 +49,17 @@ const updateWallet = async (id: string, payload: Partial<IWallet>) => {
     throw new Error("Your input field does not exists !");
   }
   const filteredPayload: Partial<IWallet> = {};
-for (const key of allowedFields) {
-  const value = payload[key];
-  if (typeof value !== "undefined") {
-    (filteredPayload as Record<string, any>)[key] = value;
+  for (const key of allowedFields) {
+    const value = payload[key];
+    if (typeof value !== "undefined") {
+      (filteredPayload as Record<string, any>)[key] = value;
+    }
   }
-}
   const updatedWallet = await Wallet.findByIdAndUpdate(id, payload, {
     new: true,
     runValidators: true,
   });
-  console.log("updated wallet", updatedWallet);
+  // console.log("updated wallet", updatedWallet);
 
   return updatedWallet;
 };

@@ -18,9 +18,7 @@ const sendResponse_1 = require("../../utils/sendResponse");
 const user_service_1 = require("./user.service");
 const http_status_codes_1 = __importDefault(require("http-status-codes"));
 const createUser = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log("afdjhhjkhjkhjkhjk", req.body);
     const user = yield user_service_1.UserServices.createUser(req.body);
-    console.log("afd", req.body);
     (0, sendResponse_1.sendResponse)(res, {
         success: true,
         statusCode: http_status_codes_1.default.CREATED,
@@ -39,6 +37,17 @@ const getAllUsers = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0,
         meta: result.meta,
     });
 }));
+const getAllAgents = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const query = req.query;
+    const result = yield user_service_1.UserServices.getAllAgents(query);
+    (0, sendResponse_1.sendResponse)(res, {
+        success: true,
+        statusCode: http_status_codes_1.default.CREATED,
+        message: "All Agents Retrieved Successfully",
+        data: result.data,
+        meta: result.meta,
+    });
+}));
 const getSingleUser = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const id = req.params.id;
     const result = yield user_service_1.UserServices.getSingleUser(id);
@@ -49,10 +58,32 @@ const getSingleUser = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 
         data: result.data,
     });
 }));
-const updateUser = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const actionUser = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const userId = req.params.id;
     const payload = req.body;
-    const user = yield user_service_1.UserServices.updateUser(userId, payload);
+    const user = yield user_service_1.UserServices.actionUser(userId, payload);
+    (0, sendResponse_1.sendResponse)(res, {
+        success: true,
+        statusCode: http_status_codes_1.default.CREATED,
+        message: "User Updated Successfully",
+        data: user,
+    });
+}));
+const agentApproved = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const payload = req.body;
+    const result = yield user_service_1.UserServices.agentApproved(req.params.id, payload);
+    (0, sendResponse_1.sendResponse)(res, {
+        statusCode: 200,
+        success: true,
+        message: "Your Wallet is deleted",
+        data: result,
+    });
+}));
+const updateUser = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const userId = req.params.id;
+    const verifiedToken = req.user;
+    const payload = req.body;
+    const user = yield user_service_1.UserServices.updateUser(userId, payload, verifiedToken);
     (0, sendResponse_1.sendResponse)(res, {
         success: true,
         statusCode: http_status_codes_1.default.CREATED,
@@ -73,6 +104,9 @@ exports.UserControllers = {
     createUser,
     getAllUsers,
     getSingleUser,
+    actionUser,
+    agentApproved,
+    getAllAgents,
     updateUser,
     deleteUser,
 };

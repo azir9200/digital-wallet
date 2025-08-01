@@ -1,7 +1,12 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import bcryptjs from "bcryptjs";
 import { envVars } from "../config/env";
-import { IUser, Role, Status } from "../modules/user/user.interface";
+import {
+  AgentStatus,
+  IUser,
+  Role,
+  Status,
+} from "../modules/user/user.interface";
 import { User } from "../modules/user/user.model";
 
 export const seedSuperAdmin = async () => {
@@ -28,6 +33,7 @@ export const seedSuperAdmin = async () => {
       email: envVars.SUPER_ADMIN_EMAIL,
       password: hashedPassword,
       status: Status.ACTIVE,
+      agentStatus: AgentStatus.APPROVED,
     };
 
     const superadmin = await User.create(payload);

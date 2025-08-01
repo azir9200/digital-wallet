@@ -36,8 +36,8 @@ const getAllWallet = (query) => __awaiter(void 0, void 0, void 0, function* () {
     };
 });
 const getSingleWallet = (id) => __awaiter(void 0, void 0, void 0, function* () {
-    const wallet = yield wallet_model_1.Wallet.findById({ ownerId: id });
-    console.log(wallet);
+    const wallet = yield wallet_model_1.Wallet.findOne({ ownerId: id }).populate("ownerId");
+    // console.log(wallet);
     return wallet;
 });
 const updateWallet = (id, payload) => __awaiter(void 0, void 0, void 0, function* () {
@@ -45,10 +45,6 @@ const updateWallet = (id, payload) => __awaiter(void 0, void 0, void 0, function
     if (!existingWallet) {
         throw new Error("Wallet not found.");
     }
-    // const ownerId = id;
-    // if (existingWallet.ownerId.toString() !== ownerId) {
-    //   throw new Error("Unauthorized: You do not own this wallet.");
-    // }
     const allowedFields = [
         "accountType",
         "dailyLimit",
@@ -68,7 +64,7 @@ const updateWallet = (id, payload) => __awaiter(void 0, void 0, void 0, function
         new: true,
         runValidators: true,
     });
-    console.log("updated wallet", updatedWallet);
+    // console.log("updated wallet", updatedWallet);
     return updatedWallet;
 });
 const deleteWallet = (id) => __awaiter(void 0, void 0, void 0, function* () {

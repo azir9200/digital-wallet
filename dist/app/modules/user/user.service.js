@@ -16,54 +16,13 @@ exports.UserServices = void 0;
 const http_status_codes_1 = __importDefault(require("http-status-codes"));
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const AppError_1 = __importDefault(require("../../errorHelpers/AppError"));
+const user_interface_1 = require("./user.interface");
 const user_model_1 = require("./user.model");
 const env_1 = require("../../config/env");
 const wallet_model_1 = require("../wallet/wallet.model");
 const mongoose_1 = __importDefault(require("mongoose"));
 const QueryBuilder_1 = require("../../utils/QueryBuilder");
 const user_constant_1 = require("./user.constant");
-// const createUser = async (payload: Partial<IUser>) => {
-//   const { name, email, password } = payload;
-//   const isUserExist = await User.findOne({ email });
-//   if (isUserExist) {
-//     throw new AppError(httpStatus.BAD_REQUEST, "User Already Exist");
-//   }
-//   const session = await mongoose.startSession();
-//   try {
-//     session.startTransaction();
-//     const hashedPassword = await bcryptjs.hash(
-//       password as string,
-//       Number(envVars.BCRYPT_SALT_ROUND)
-//     );
-//     //user create
-//     const newUser = await User.create(
-//       [
-//         {
-//           name,
-//           email,
-//           password: hashedPassword,
-//         },
-//       ],
-//       { session }
-//     );
-//     await Wallet.create([{ ownerId: newUser[0]._id }], {
-//       session,
-//     });
-//     await session.commitTransaction();
-//     session.endSession();
-//     return {
-//       user: newUser[0],
-//     };
-//   } catch (error) {
-//     await session.abortTransaction();
-//     session.endSession();
-//     console.log(error);
-//     throw new AppError(
-//       httpStatus.INTERNAL_SERVER_ERROR,
-//       "Failed to create user and wallet"
-//     );
-//   }
-// };
 const createUser = (payload) => __awaiter(void 0, void 0, void 0, function* () {
     const { name, email, password, role } = payload;
     const isUserExist = yield user_model_1.User.findOne({ email });
@@ -103,7 +62,24 @@ const createUser = (payload) => __awaiter(void 0, void 0, void 0, function* () {
     }
 });
 const getAllUsers = (query) => __awaiter(void 0, void 0, void 0, function* () {
-    const queryBuilder = new QueryBuilder_1.QueryBuilder(user_model_1.User.find(), query || {});
+    const queryBuilder = new QueryBuilder_1.QueryBuilder(user_model_1.User.find({ role: "USER" }), query || {});
+    const userData = queryBuilder
+        .search(user_constant_1.userSearchableFields)
+        .filter()
+        .sort()
+        .fields()
+        .paginate();
+    const [data, meta] = yield Promise.all([
+        userData.build(),
+        queryBuilder.getMeta(),
+    ]);
+    return {
+        data,
+        meta,
+    };
+});
+const getAllAgents = (query) => __awaiter(void 0, void 0, void 0, function* () {
+    const queryBuilder = new QueryBuilder_1.QueryBuilder(user_model_1.User.find({ role: "AGENT" }), query || {});
     const userData = queryBuilder
         .search(user_constant_1.userSearchableFields)
         .filter()
@@ -125,10 +101,48 @@ const getSingleUser = (id) => __awaiter(void 0, void 0, void 0, function* () {
         data: user,
     };
 });
-const updateUser = (userId, payload) => __awaiter(void 0, void 0, void 0, function* () {
-    const ifUserExists = yield user_model_1.User.findById(userId);
-    if (!ifUserExists) {
+const actionUser = (userId, payload) => __awaiter(void 0, void 0, void 0, function* () {
+    const user = yield user_model_1.User.findById(userId);
+    if (!user) {
+        throw new AppError_1.default(http_status_codes_1.default.NOT_FOUND, "User not found");
+    }
+    if (payload.role) {
+        user.role = payload.role;
+    }
+    // user.status = payload.status;
+    yield user.save();
+    return user;
+});
+const agentApproved = (id, payload) => __awaiter(void 0, void 0, void 0, function* () {
+    const agent = yield user_model_1.User.findOne({ _id: id, role: "AGENT" });
+    if (!agent) {
+        throw new AppError_1.default(http_status_codes_1.default.NOT_FOUND, "Agent not found");
+    }
+    if (payload.agentStatus) {
+        agent.agentStatus = payload.agentStatus;
+    }
+    // agent.role = payload.role;
+    yield agent.save();
+    return agent;
+});
+const updateUser = (userId, payload, decodedToken) => __awaiter(void 0, void 0, void 0, function* () {
+    if (decodedToken.role === user_interface_1.Role.USER || decodedToken.role === user_interface_1.Role.AGENT) {
+        if (userId !== decodedToken.userId) {
+            throw new AppError_1.default(401, "You are not authorized");
+        }
+    }
+    const ifUserExist = yield user_model_1.User.findById(userId);
+    if (!ifUserExist) {
         throw new AppError_1.default(http_status_codes_1.default.NOT_FOUND, "User Not Found");
+    }
+    if (decodedToken.role === user_interface_1.Role.ADMIN &&
+        ifUserExist.role === user_interface_1.Role.SUPER_ADMIN) {
+        throw new AppError_1.default(401, "You are not authorized");
+    }
+    if (payload.role) {
+        if (decodedToken.role === user_interface_1.Role.USER || decodedToken.role === user_interface_1.Role.AGENT) {
+            throw new AppError_1.default(http_status_codes_1.default.FORBIDDEN, "You are not authorized");
+        }
     }
     if (payload.password) {
         payload.password = yield bcryptjs_1.default.hash(payload.password, env_1.envVars.BCRYPT_SALT_ROUND);
@@ -146,7 +160,10 @@ const deleteUser = (id) => __awaiter(void 0, void 0, void 0, function* () {
 exports.UserServices = {
     createUser,
     getAllUsers,
+    getAllAgents,
     getSingleUser,
+    actionUser,
+    agentApproved,
     updateUser,
     deleteUser,
 };

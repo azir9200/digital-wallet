@@ -17,11 +17,30 @@ router.get(
   checkAuth(Role.ADMIN, Role.SUPER_ADMIN),
   UserControllers.getAllUsers
 );
+router.get(
+  "/all-agents",
+  checkAuth(Role.ADMIN, Role.SUPER_ADMIN),
+  UserControllers.getAllAgents
+);
 
 router.get(
   "/:id",
   checkAuth(...Object.values(Role)),
   UserControllers.getSingleUser
+);
+// router.get("/getMe",
+//   //  checkAuth(...Object.values(Role)),
+//  UserControllers.getMe);
+router.patch(
+  "/action/:id",
+  validateRequest(updateUserZodSchema),
+  checkAuth(Role.ADMIN, Role.SUPER_ADMIN),
+  UserControllers.actionUser
+);
+router.patch(
+  "/agents/:id",
+  checkAuth(Role.ADMIN, Role.SUPER_ADMIN),
+  UserControllers.agentApproved
 );
 router.patch(
   "/:id",

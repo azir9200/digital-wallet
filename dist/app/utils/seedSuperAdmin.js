@@ -35,6 +35,7 @@ const seedSuperAdmin = () => __awaiter(void 0, void 0, void 0, function* () {
             email: env_1.envVars.SUPER_ADMIN_EMAIL,
             password: hashedPassword,
             status: user_interface_1.Status.ACTIVE,
+            agentStatus: user_interface_1.AgentStatus.APPROVED,
         };
         const superadmin = yield user_model_1.User.create(payload);
         console.log("Super Admin Created Successfully! \n");

@@ -9,13 +9,20 @@ export enum Status {
   BLOCKED = "BLOCKED",
 }
 
+export enum AgentStatus {
+  PENDING = "pending",
+  APPROVED = "approved",
+  SUSPENDED = "suspended",
+}
 export interface IUser {
   _id?: string;
+
   name: string;
   email: string;
   password: string;
   role: Role;
   status: Status;
+  agentStatus: AgentStatus;
   isDeleted?: string;
   commissionRate?: number; // Only for agents
   createdAt?: Date;

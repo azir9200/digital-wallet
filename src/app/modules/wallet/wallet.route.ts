@@ -10,16 +10,21 @@ router.get(
   checkAuth(Role.ADMIN, Role.SUPER_ADMIN),
   WalletController.getAllWallet
 );
-router.get("/:id", WalletController.getSingleWallet);
-router.patch(
-  "/:id",
-  checkAuth(Role.ADMIN, Role.SUPER_ADMIN),
-  WalletController.updateWallet
+router.get(
+  "/getMe",
+  checkAuth(Role.ADMIN, Role.SUPER_ADMIN, Role.AGENT, Role.USER),
+  WalletController.getSingleWallet
 );
-router.delete(
-  "/:id",
-  checkAuth(Role.ADMIN, Role.SUPER_ADMIN),
-  WalletController.deleteWallet
-);
+
+// router.patch(
+//   "/:id",
+//   checkAuth(Role.ADMIN, Role.SUPER_ADMIN),
+//   WalletController.updateWallet
+// );
+// router.delete(
+//   "/:id",
+//   checkAuth(Role.ADMIN, Role.SUPER_ADMIN),
+//   WalletController.deleteWallet
+// );
 
 export const WalletRoutes = router;

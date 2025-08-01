@@ -1,9 +1,8 @@
 import { model, Schema } from "mongoose";
-import { IUser, Role, Status } from "./user.interface";
+import { AgentStatus, IUser, Role, Status } from "./user.interface";
 
 const userSchema = new Schema<IUser>(
   {
-  
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     password: { type: String },
@@ -17,6 +16,11 @@ const userSchema = new Schema<IUser>(
       type: String,
       enum: Object.values(Status),
       default: Status.ACTIVE,
+    },
+    agentStatus: {
+      type: String,
+      enum: Object.values(AgentStatus),
+      default: AgentStatus.PENDING,
     },
     isDeleted: { type: Boolean, default: false },
     commissionRate: { type: Number },

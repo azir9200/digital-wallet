@@ -17,6 +17,11 @@ const userSchema = new mongoose_1.Schema({
         enum: Object.values(user_interface_1.Status),
         default: user_interface_1.Status.ACTIVE,
     },
+    agentStatus: {
+        type: String,
+        enum: Object.values(user_interface_1.AgentStatus),
+        default: user_interface_1.AgentStatus.PENDING,
+    },
     isDeleted: { type: Boolean, default: false },
     commissionRate: { type: Number },
 }, {
