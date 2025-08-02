@@ -5,6 +5,8 @@ import { Transaction } from "./transaction.model";
 import { Wallet } from "../wallet/wallet.model";
 import mongoose from "mongoose";
 import AppError from "../../errorHelpers/AppError";
+import { QueryBuilder } from "../../utils/QueryBuilder";
+import { transactionSearchableFields } from "./transaction.constant";
 
 const createTransfer = async (payload: Partial<ITransaction>) => {
   const { sender, receiver, amount } = payload;
@@ -255,14 +257,25 @@ const cashOut = async (userId: string, payload: Partial<ITransaction>) => {
   }
 };
 
-const getAllTransaction = async () => {
-  const result = await Transaction.find({});
-  const totalTransaction = await Transaction.countDocuments();
+const getAllTransaction = async (query: Record<string, string>) => {
+ const queryBuilder = new QueryBuilder(
+    Transaction.find(),
+    query || {}
+  );
+ const transactionData = queryBuilder
+    .search(transactionSearchableFields)
+    .filter()
+    .sort()
+    .fields()
+    .paginate();
+
+  const [data, meta] = await Promise.all([
+    transactionData.build(),
+    queryBuilder.getMeta(),
+  ]);
   return {
-    data: result,
-    meta: {
-      total: totalTransaction,
-    },
+    data,
+    meta,
   };
 };
 const getSingleTransaction = async (id: string) => {

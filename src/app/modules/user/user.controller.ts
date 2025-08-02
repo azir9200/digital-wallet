@@ -57,9 +57,9 @@ const getSingleUser = catchAsync(async (req: Request, res: Response) => {
   });
 });
 const actionUser = catchAsync(async (req: Request, res: Response) => {
-  const userId = req.params.id;
+  const id = req.params.id;
   const payload = req.body;
-  const user = await UserServices.actionUser(userId, payload);
+  const user = await UserServices.actionUser(id, payload);
   sendResponse(res, {
     success: true,
     statusCode: httpStatus.CREATED,

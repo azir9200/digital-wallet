@@ -28,9 +28,7 @@ router.get(
   checkAuth(...Object.values(Role)),
   UserControllers.getSingleUser
 );
-// router.get("/getMe",
-//   //  checkAuth(...Object.values(Role)),
-//  UserControllers.getMe);
+
 router.patch(
   "/action/:id",
   validateRequest(updateUserZodSchema),

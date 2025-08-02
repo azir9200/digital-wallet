@@ -16,15 +16,15 @@ router.get(
   WalletController.getSingleWallet
 );
 
-// router.patch(
-//   "/:id",
-//   checkAuth(Role.ADMIN, Role.SUPER_ADMIN),
-//   WalletController.updateWallet
-// );
-// router.delete(
-//   "/:id",
-//   checkAuth(Role.ADMIN, Role.SUPER_ADMIN),
-//   WalletController.deleteWallet
-// );
+router.patch(
+  "/:id",
+  checkAuth(Role.ADMIN, Role.SUPER_ADMIN),
+  WalletController.updateWallet
+);
+router.delete(
+  "/:id",
+  checkAuth(Role.ADMIN, Role.SUPER_ADMIN),
+  WalletController.deleteWallet
+);
 
 export const WalletRoutes = router;

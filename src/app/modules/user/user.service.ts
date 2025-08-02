@@ -106,7 +106,6 @@ const getAllAgents = async (query: Record<string, string>) => {
   };
 };
 
-
 const getSingleUser = async (id: string) => {
   const user = await User.findById(id).select("-password");
   return {
@@ -114,8 +113,8 @@ const getSingleUser = async (id: string) => {
   };
 };
 
-const actionUser = async (userId: string, payload: Partial<IUser>) => {
-  const user = await User.findById(userId);
+const actionUser = async (id: string, payload: Partial<IUser>) => {
+  const user = await User.findById(id);
 
   if (!user) {
     throw new AppError(httpStatus.NOT_FOUND, "User not found");

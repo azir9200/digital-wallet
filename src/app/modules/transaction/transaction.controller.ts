@@ -58,7 +58,10 @@ const cashOut = catchAsync(async (req: Request, res: Response) => {
   });
 });
 const getAllTransaction = catchAsync(async (req: Request, res: Response) => {
-  const result = await TransactionService.getAllTransaction();
+  const query = req.query;
+  const result = await TransactionService.getAllTransaction(
+    query as Record<string, string>
+  );
   sendResponse(res, {
     statusCode: 200,
     success: true,
