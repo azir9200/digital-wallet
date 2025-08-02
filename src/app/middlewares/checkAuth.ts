@@ -27,6 +27,8 @@ export const checkAuth =
       if (!isUserExist) {
         throw new AppError(httpStatus.BAD_REQUEST, "User does not exist");
       }
+
+      //Blocked user
       if (isUserExist.status === Status.BLOCKED) {
         throw new AppError(
           httpStatus.BAD_REQUEST,
@@ -34,10 +36,21 @@ export const checkAuth =
         );
       }
 
+      // Deleted user
       if (isUserExist.isDeleted) {
         throw new AppError(httpStatus.BAD_REQUEST, "User is deleted");
       }
 
+      if (
+        isUserExist.role === "AGENT" &&
+        isUserExist.agentStatus !== "approved"
+      ) {
+        throw new AppError(
+          httpStatus.FORBIDDEN,
+          `Agent is ${isUserExist.status}. Please wait for admin approval.`
+        );
+      }
+      // Role check
       if (!authRoles.includes(verifiedToken.role)) {
         throw new AppError(403, "You are not permitted to view this route!!!");
       }

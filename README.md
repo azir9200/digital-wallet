@@ -102,10 +102,12 @@ JWT_SECRET=your_jwt_secret
 JWT_EXPIRES_IN=1d
 
 🔗 Links
+
 Video Link : https://youtu.be/1UhuyhLqAfc
-Github Link: https://github.com/azir9200/digital-wallet
-Deploy Link:
-postman-testing Link: https://universal-shuttle-584590.postman.co/workspace/My-Workspace~34727b33-1c05-4c7c-8c6f-5d7be558cbea/collection/30664357-4bf42d6a-ebc6-4e63-bdd6-436732069927?action=share&creator=30664357
+
+## POSTMAN LINK
+
+postman-testing Link:https://universal-shuttle-584590.postman.co/workspace/My-Workspace~34727b33-1c05-4c7c-8c6f-5d7be558cbea/collection/30664357-d1ecca21-0ce4-4f00-86c3-e0b88d2c2cd4?action=share&creator=30664357
 
 ```
 

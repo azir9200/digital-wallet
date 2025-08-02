@@ -8,8 +8,11 @@ import AppError from "../../errorHelpers/AppError";
 import { QueryBuilder } from "../../utils/QueryBuilder";
 import { transactionSearchableFields } from "./transaction.constant";
 
-const createTransfer = async (payload: Partial<ITransaction>) => {
-  const { sender, receiver, amount } = payload;
+const createTransfer = async (
+  payload: Partial<ITransaction>,
+  sender: string
+) => {
+  const { receiver, amount } = payload;
 
   const session = await mongoose.startSession();
   session.startTransaction();
@@ -22,12 +25,21 @@ const createTransfer = async (payload: Partial<ITransaction>) => {
     const receiverWallet = await Wallet.findOne({ ownerId: receiver }).session(
       session
     );
+    if (!senderWallet) {
+      throw new AppError(httpStatus.BAD_REQUEST, "sender Wallet not found !");
+    }
+    if (!receiverWallet) {
+      throw new AppError(httpStatus.BAD_REQUEST, "receiver Wallet not found !");
+    }
 
-    if (!senderWallet || !receiverWallet) {
+    if (senderWallet._id.equals(receiverWallet._id)) {
       throw new AppError(
-        httpStatus.NOT_FOUND,
-        "Sender or receiver wallet not found"
+        httpStatus.BAD_REQUEST,
+        "You cannot send money to yourself"
       );
+    }
+    if (senderWallet.balance! < amount!) {
+      throw new AppError(httpStatus.BAD_REQUEST, "Insufficient balance");
     }
 
     if (senderWallet.balance! < amount!) {
@@ -45,9 +57,11 @@ const createTransfer = async (payload: Partial<ITransaction>) => {
     const transaction = await Transaction.create(
       [
         {
+          userId: sender,
           sender,
           receiver,
           amount,
+          type: "SEND_MONEY",
           status: "COMPLETED",
         },
       ],
@@ -79,7 +93,7 @@ const addMoney = async (userId: string, payload: Partial<ITransaction>) => {
       throw new AppError(httpStatus.NOT_FOUND, "Wallet not found");
     }
 
-    existingWallet!.balance! += amountNumber!;
+    existingWallet.balance = Number(existingWallet.balance) + amountNumber;
     await existingWallet.save({ session });
 
     // Create transaction
@@ -122,7 +136,7 @@ const withdrawMoney = async (
       throw new AppError(httpStatus.NOT_FOUND, "Wallet not found");
     }
 
-    existingWallet!.balance! -= amountNumber!;
+    existingWallet.balance = Number(existingWallet.balance) - amountNumber;
     await existingWallet.save({ session });
 
     // Create transaction
@@ -153,9 +167,13 @@ const cashIn = async (agentId: string, payload: Partial<ITransaction>) => {
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
-    const existingAgent = await Wallet.findOne({ ownerId: agentId }).session(
-      session
-    );
+    const existingAgent = await Wallet.findOne({ ownerId: agentId })
+      .populate({
+        path: "oWnerId",
+        match: { role: "AGENT", agentStatus: "approved", status: "ACTIVE" },
+      })
+      .session(session);
+
     const existingUser = await Wallet.findOne({ ownerId: userId }).session(
       session
     );
@@ -183,6 +201,7 @@ const cashIn = async (agentId: string, payload: Partial<ITransaction>) => {
     const transaction = await Transaction.create(
       [
         {
+          userId: agentId,
           sender: agentId,
           receiver: userId,
           type: "CASH_IN",
@@ -208,15 +227,23 @@ const cashOut = async (userId: string, payload: Partial<ITransaction>) => {
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
-    const existingAgent = await Wallet.findOne({ ownerId: agentId }).session(
-      session
-    );
-    const existingUser = await Wallet.findOne({ ownerId: userId }).session(
-      session
-    );
+    const existingAgent = await Wallet.findOne({ ownerId: agentId })
+      .populate("ownerId")
+      .session(session);
+    // console.log(existingAgent);
+    const existingUser = await Wallet.findOne({ ownerId: userId })
+      .populate({
+        path: "ownerId",
+        match: { role: "USER", status: "ACTIVE" },
+      })
+      .session(session);
+
+    // if (existingAgent?.ownerId.agentStatus != "approved") {
+    //   throw new AppError(httpStatus.NOT_FOUND, "approved agent not found");
+    // }
 
     if (!existingAgent) {
-      throw new AppError(httpStatus.NOT_FOUND, "Agent not found");
+      throw new AppError(httpStatus.NOT_FOUND, " agent not found");
     }
     if (!existingUser) {
       throw new AppError(httpStatus.NOT_FOUND, "User not found");
@@ -238,6 +265,7 @@ const cashOut = async (userId: string, payload: Partial<ITransaction>) => {
     const transaction = await Transaction.create(
       [
         {
+          userId: userId,
           sender: userId,
           receiver: agentId,
           type: "CASH_OUT",
@@ -258,11 +286,8 @@ const cashOut = async (userId: string, payload: Partial<ITransaction>) => {
 };
 
 const getAllTransaction = async (query: Record<string, string>) => {
- const queryBuilder = new QueryBuilder(
-    Transaction.find(),
-    query || {}
-  );
- const transactionData = queryBuilder
+  const queryBuilder = new QueryBuilder(Transaction.find(), query || {});
+  const transactionData = queryBuilder
     .search(transactionSearchableFields)
     .filter()
     .sort()
@@ -279,7 +304,7 @@ const getAllTransaction = async (query: Record<string, string>) => {
   };
 };
 const getSingleTransaction = async (id: string) => {
-  const result = await Transaction.findById({ _id: id });
+  const result = await Transaction.find({ userId: id });
   return {
     data: result,
   };
