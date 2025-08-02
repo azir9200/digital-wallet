@@ -32,8 +32,8 @@ Admin: Admin will be able to View all users/agents/wallets/transactions, block/u
 
 src/app
 ├── modules/
-│ ├── auth/ # Register, Login,
-│ ├── user/ interface, model, service, controller and route components,
+│ ├── auth/ # Register, Login
+│ ├── user/ # Interface, model, service, controller and routes
 │ ├── wallet/ # Wallet creation & operations
 │ └── transaction/ # Transaction records & validation
 ├── middlewares/ # Auth, Error, Validation, RBAC
@@ -45,55 +45,63 @@ src/app
 
 ## API Endpoints Summary
 
-POST /user/register
-GET /user/all-users
-GET /user//all-agents
-GET /user/:id
-PATCH /user/action/:id
-PATCH /user/agents/:id
-PATCH /user/:id
+## User Routes
+
+POST /user/register  
+GET /user/all-users  
+GET /user/all-agents  
+GET /user/:id  
+PATCH /user/action/:id  
+PATCH /user/agents/:id  
+PATCH /user/:id  
 DELETE /user/:id
 
-POST /auth/login
-POST /auth/refresh-token
+## Auth Routes
+
+POST /auth/login  
+POST /auth/refresh-token  
 POST /auth/logout
 
-GET /wallets/
-GET /wallets/getMe
-PATCH /wallets/:id
+## Wallet Routes
+
+GET /wallets/  
+GET /wallets/getMe  
+PATCH /wallets/:id  
 DELETE /wallets/
 
-POST /transactions//transfer
-POST /transactions/addMoney
-POST /transactions/withdraw
-POST //transactions/cashOut
-GET /transactions/
-POST /transactions/cash-out
-GET /transactions/my/:id
-PATCH /transactions/admin/wallets/block/:id
+## Transaction Routes
+
+POST /transactions/transfer  
+POST /transactions/addMoney  
+POST /transactions/withdraw  
+POST /transactions/cashOut  
+GET /transactions/  
+POST /transactions/cash-out  
+GET /transactions/my/:id  
+PATCH /transactions/admin/wallets/block/:id  
 DELETE /transactions/:id
 
 More detailed routes are documented link below in the Postman collection.
 
 ## ⚙️ Setup Instructions
 
-### 1. Clone the repo
+# Clone the repo
 
-git clone https://github.com/your-username/digital-wallet-api.git
+git clone https://github.com/your-username/digital-wallet-api.git  
 cd digital-wallet-api
 
---
-Configure .env
-Clone the repo
-npm install
-add your env file
---
+# Install dependencies
 
-PORT=5000
-DATABASE_URL=mongodb://localhost:27017/digital-wallet
-JWT_SECRET=your_jwt_secret
+npm install
+
+# Configure .env
+
+PORT=5000  
+DATABASE_URL=mongodb://localhost:27017/digital-wallet  
+JWT_SECRET=your_jwt_secret  
 JWT_EXPIRES_IN=1d
 
+🔗 Links
 Video Link : https://youtu.be/1UhuyhLqAfc
 Github Link: https://github.com/azir9200/digital-wallet
 Deploy Link:
