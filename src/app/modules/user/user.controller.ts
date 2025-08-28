@@ -56,6 +56,19 @@ const getSingleUser = catchAsync(async (req: Request, res: Response) => {
     data: result.data,
   });
 });
+const getMe = catchAsync(async (req: Request, res: Response) => {
+  const id = req.user.id;
+  console.log(" id", id);
+  console.log(" id", req.user);
+  const result = await UserServices.getMe(id);
+  console.log("res", result);
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.CREATED,
+    message: "User Retrieved Successfully",
+    data: result.data,
+  });
+});
 const actionUser = catchAsync(async (req: Request, res: Response) => {
   const id = req.params.id;
   const payload = req.body;
@@ -111,6 +124,7 @@ export const UserControllers = {
   createUser,
   getAllUsers,
   getSingleUser,
+  getMe,
   actionUser,
   agentApproved,
   getAllAgents,

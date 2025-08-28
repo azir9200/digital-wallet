@@ -113,6 +113,13 @@ const getSingleUser = async (id: string) => {
   };
 };
 
+const getMe = async (id: string) => {
+  const user = await User.findById(id).select("-password");
+  return {
+    data: user,
+  };
+};
+
 const actionUser = async (id: string, payload: Partial<IUser>) => {
   const user = await User.findById(id);
 
@@ -192,6 +199,7 @@ export const UserServices = {
   getAllUsers,
   getAllAgents,
   getSingleUser,
+  getMe,
   actionUser,
   agentApproved,
   updateUser,

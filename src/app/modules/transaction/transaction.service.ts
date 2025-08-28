@@ -16,6 +16,7 @@ const createTransfer = async (
 
   const session = await mongoose.startSession();
   session.startTransaction();
+  console.log("session", session);
 
   try {
     // Find sender and receiver wallets
