@@ -114,10 +114,9 @@ const getSingleUser = async (id: string) => {
 };
 
 const getMe = async (id: string) => {
-  const user = await User.findById(id).select("-password");
-  return {
-    data: user,
-  };
+  const result = await User.findOne({ _id: id }).select("-password");
+
+  return result;
 };
 
 const actionUser = async (id: string, payload: Partial<IUser>) => {

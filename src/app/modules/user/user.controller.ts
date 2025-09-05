@@ -57,7 +57,7 @@ const getSingleUser = catchAsync(async (req: Request, res: Response) => {
   });
 });
 const getMe = catchAsync(async (req: Request, res: Response) => {
-  const id = req.user.id;
+  const id = req?.user?.id;
   console.log(" id", id);
   console.log(" id", req.user);
   const result = await UserServices.getMe(id);
@@ -66,7 +66,7 @@ const getMe = catchAsync(async (req: Request, res: Response) => {
     success: true,
     statusCode: httpStatus.CREATED,
     message: "User Retrieved Successfully",
-    data: result.data,
+    data: result,
   });
 });
 const actionUser = catchAsync(async (req: Request, res: Response) => {

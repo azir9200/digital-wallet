@@ -1,3 +1,5 @@
+import { Types } from "mongoose";
+
 export enum Role {
   SUPER_ADMIN = "SUPER_ADMIN",
   ADMIN = "ADMIN",
@@ -6,6 +8,7 @@ export enum Role {
 }
 export enum Status {
   ACTIVE = "ACTIVE",
+  InACTIVE = "InACTIVE",
   BLOCKED = "BLOCKED",
 }
 
@@ -14,8 +17,14 @@ export enum AgentStatus {
   APPROVED = "approved",
   SUSPENDED = "suspended",
 }
+
+export enum IsActive {
+  ACTIVE = "ACTIVE",
+  INACTIVE = "INACTIVE",
+  BLOCKED = "BLOCKED",
+}
+
 export interface IUser {
-  _id?: string;
 
   name: string;
   email: string;
@@ -24,7 +33,9 @@ export interface IUser {
   status: Status;
   agentStatus: AgentStatus;
   isDeleted?: string;
-  commissionRate?: number; // Only for agents
+  isActive?: IsActive;
+  isVerified?: boolean;
+  commissionRate?: number;
   createdAt?: Date;
   updatedAt?: Date;
 }

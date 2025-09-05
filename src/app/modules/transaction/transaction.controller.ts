@@ -4,7 +4,7 @@ import { sendResponse } from "../../utils/sendResponse";
 import { TransactionService } from "./transaction.service";
 
 const createTransfer = catchAsync(async (req: Request, res: Response) => {
-  const senderId = req.user.id;
+  const senderId = req.user?._id;
   const result = await TransactionService.createTransfer(req.body, senderId);
   sendResponse(res, {
     statusCode: 201,
@@ -15,7 +15,7 @@ const createTransfer = catchAsync(async (req: Request, res: Response) => {
 });
 
 const addMoney = catchAsync(async (req: Request, res: Response) => {
-  const userId = req.user.id;
+  const userId = req.user?.id;
 
   const result = await TransactionService.addMoney(userId, req.body);
   sendResponse(res, {
