@@ -6,7 +6,7 @@ import { User } from "../modules/user/user.model";
 
 export const createUserTokens = (user: Partial<IUser>) => {
   const jwtPayload = {
-    id: user._id,
+    id: user.id,
     email: user.email,
     role: user.role,
   };

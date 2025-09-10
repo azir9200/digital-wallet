@@ -14,7 +14,9 @@ const catchAsync_1 = require("../../utils/catchAsync");
 const sendResponse_1 = require("../../utils/sendResponse");
 const transaction_service_1 = require("./transaction.service");
 const createTransfer = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const result = yield transaction_service_1.TransactionService.createTransfer(req.body);
+    var _a;
+    const senderId = (_a = req.user) === null || _a === void 0 ? void 0 : _a._id;
+    const result = yield transaction_service_1.TransactionService.createTransfer(req.body, senderId);
     (0, sendResponse_1.sendResponse)(res, {
         statusCode: 201,
         success: true,
@@ -23,7 +25,8 @@ const createTransfer = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void
     });
 }));
 const addMoney = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const userId = req.user.id;
+    var _b;
+    const userId = (_b = req.user) === null || _b === void 0 ? void 0 : _b.id;
     const result = yield transaction_service_1.TransactionService.addMoney(userId, req.body);
     (0, sendResponse_1.sendResponse)(res, {
         statusCode: 201,
@@ -64,7 +67,8 @@ const cashOut = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, voi
     });
 }));
 const getAllTransaction = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const result = yield transaction_service_1.TransactionService.getAllTransaction();
+    const query = req.query;
+    const result = yield transaction_service_1.TransactionService.getAllTransaction(query);
     (0, sendResponse_1.sendResponse)(res, {
         statusCode: 200,
         success: true,
@@ -74,7 +78,7 @@ const getAllTransaction = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(v
     });
 }));
 const getSingleTransaction = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const id = req.params.id;
+    const id = req.user.id;
     const result = yield transaction_service_1.TransactionService.getSingleTransaction(id);
     (0, sendResponse_1.sendResponse)(res, {
         statusCode: 200,

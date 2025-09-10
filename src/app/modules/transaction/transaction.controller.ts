@@ -15,7 +15,7 @@ const createTransfer = catchAsync(async (req: Request, res: Response) => {
 });
 
 const addMoney = catchAsync(async (req: Request, res: Response) => {
-  const userId = req.user?.id;
+  const userId = req.user;
 
   const result = await TransactionService.addMoney(userId, req.body);
   sendResponse(res, {
@@ -26,7 +26,7 @@ const addMoney = catchAsync(async (req: Request, res: Response) => {
   });
 });
 const withdrawMoney = catchAsync(async (req: Request, res: Response) => {
-  const userId = req.user.id;
+  const userId = req.user;
   console.log("object id", userId, req.user);
   const result = await TransactionService.withdrawMoney(userId, req.body);
   sendResponse(res, {
@@ -37,7 +37,7 @@ const withdrawMoney = catchAsync(async (req: Request, res: Response) => {
   });
 });
 const cashIn = catchAsync(async (req: Request, res: Response) => {
-  const userId = req.user.id;
+  const userId = req.user;
 
   const result = await TransactionService.cashIn(userId, req.body);
   sendResponse(res, {
@@ -48,7 +48,7 @@ const cashIn = catchAsync(async (req: Request, res: Response) => {
   });
 });
 const cashOut = catchAsync(async (req: Request, res: Response) => {
-  const agentId = req.user.id;
+  const agentId = req.user;
 
   const result = await TransactionService.cashOut(agentId, req.body);
   sendResponse(res, {
@@ -72,7 +72,7 @@ const getAllTransaction = catchAsync(async (req: Request, res: Response) => {
   });
 });
 const getSingleTransaction = catchAsync(async (req: Request, res: Response) => {
-  const id = req.user.id;
+  const id = req.user;
 
   const result = await TransactionService.getSingleTransaction(id);
 

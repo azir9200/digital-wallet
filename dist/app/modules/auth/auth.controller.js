@@ -19,6 +19,8 @@ const auth_service_1 = require("./auth.service");
 const sendResponse_1 = require("../../utils/sendResponse");
 const setCookie_1 = require("../../utils/setCookie");
 const AppError_1 = __importDefault(require("../../errorHelpers/AppError"));
+const userTokens_1 = require("../../utils/userTokens");
+const env_1 = require("../../config/env");
 const authLogin = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const loginInfo = yield auth_service_1.AuthServices.authLogin(req.body);
     console.log("login info", loginInfo);
@@ -36,7 +38,7 @@ const getNewAccessToken = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(v
         throw new AppError_1.default(http_status_codes_1.default.BAD_REQUEST, "No refresh token received from cookies");
     }
     const tokenInfo = yield auth_service_1.AuthServices.getNewAccessToken(refreshToken);
-    console.log("object token info", tokenInfo);
+    // console.log("object token info", tokenInfo);
     (0, setCookie_1.setAuthCookie)(res, tokenInfo);
     (0, sendResponse_1.sendResponse)(res, {
         success: true,
@@ -63,8 +65,24 @@ const logout = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void
         data: null,
     });
 }));
+const googleCallbackController = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    let redirectTo = req.query.state ? req.query.state : "";
+    if (redirectTo.startsWith("/")) {
+        redirectTo = redirectTo.slice(1);
+    }
+    const user = req.user;
+    console.log("authCont", user);
+    if (!user) {
+        throw new AppError_1.default(http_status_codes_1.default.NOT_FOUND, "User Not Found");
+    }
+    const tokenInfo = (0, userTokens_1.createUserTokens)(user);
+    console.log("auth cont", tokenInfo);
+    (0, setCookie_1.setAuthCookie)(res, tokenInfo);
+    res.redirect(`${env_1.envVars.FRONTEND_URL}/${redirectTo}`);
+}));
 exports.AuthControllers = {
     authLogin,
     getNewAccessToken,
     logout,
+    googleCallbackController,
 };

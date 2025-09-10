@@ -58,10 +58,24 @@ const getSingleUser = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 
         data: result.data,
     });
 }));
+const getMe = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    const id = (_a = req === null || req === void 0 ? void 0 : req.user) === null || _a === void 0 ? void 0 : _a.id;
+    console.log(" id", id);
+    console.log(" id", req.user);
+    const result = yield user_service_1.UserServices.getMe(id);
+    console.log("res", result);
+    (0, sendResponse_1.sendResponse)(res, {
+        success: true,
+        statusCode: http_status_codes_1.default.CREATED,
+        message: "User Retrieved Successfully",
+        data: result,
+    });
+}));
 const actionUser = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const userId = req.params.id;
+    const id = req.params.id;
     const payload = req.body;
-    const user = yield user_service_1.UserServices.actionUser(userId, payload);
+    const user = yield user_service_1.UserServices.actionUser(id, payload);
     (0, sendResponse_1.sendResponse)(res, {
         success: true,
         statusCode: http_status_codes_1.default.CREATED,
@@ -104,6 +118,7 @@ exports.UserControllers = {
     createUser,
     getAllUsers,
     getSingleUser,
+    getMe,
     actionUser,
     agentApproved,
     getAllAgents,

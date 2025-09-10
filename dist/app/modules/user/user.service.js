@@ -101,8 +101,12 @@ const getSingleUser = (id) => __awaiter(void 0, void 0, void 0, function* () {
         data: user,
     };
 });
-const actionUser = (userId, payload) => __awaiter(void 0, void 0, void 0, function* () {
-    const user = yield user_model_1.User.findById(userId);
+const getMe = (id) => __awaiter(void 0, void 0, void 0, function* () {
+    const result = yield user_model_1.User.findOne({ _id: id }).select("-password");
+    return result;
+});
+const actionUser = (id, payload) => __awaiter(void 0, void 0, void 0, function* () {
+    const user = yield user_model_1.User.findById(id);
     if (!user) {
         throw new AppError_1.default(http_status_codes_1.default.NOT_FOUND, "User not found");
     }
@@ -162,6 +166,7 @@ exports.UserServices = {
     getAllUsers,
     getAllAgents,
     getSingleUser,
+    getMe,
     actionUser,
     agentApproved,
     updateUser,

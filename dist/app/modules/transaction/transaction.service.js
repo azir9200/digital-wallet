@@ -19,16 +19,28 @@ const transaction_model_1 = require("./transaction.model");
 const wallet_model_1 = require("../wallet/wallet.model");
 const mongoose_1 = __importDefault(require("mongoose"));
 const AppError_1 = __importDefault(require("../../errorHelpers/AppError"));
-const createTransfer = (payload) => __awaiter(void 0, void 0, void 0, function* () {
-    const { sender, receiver, amount } = payload;
+const QueryBuilder_1 = require("../../utils/QueryBuilder");
+const transaction_constant_1 = require("./transaction.constant");
+const createTransfer = (payload, sender) => __awaiter(void 0, void 0, void 0, function* () {
+    const { receiver, amount } = payload;
     const session = yield mongoose_1.default.startSession();
     session.startTransaction();
+    console.log("session", session);
     try {
         // Find sender and receiver wallets
         const senderWallet = yield wallet_model_1.Wallet.findOne({ ownerId: sender }).session(session);
         const receiverWallet = yield wallet_model_1.Wallet.findOne({ ownerId: receiver }).session(session);
-        if (!senderWallet || !receiverWallet) {
-            throw new AppError_1.default(http_status_codes_1.default.NOT_FOUND, "Sender or receiver wallet not found");
+        if (!senderWallet) {
+            throw new AppError_1.default(http_status_codes_1.default.BAD_REQUEST, "sender Wallet not found !");
+        }
+        if (!receiverWallet) {
+            throw new AppError_1.default(http_status_codes_1.default.BAD_REQUEST, "receiver Wallet not found !");
+        }
+        if (senderWallet._id.equals(receiverWallet._id)) {
+            throw new AppError_1.default(http_status_codes_1.default.BAD_REQUEST, "You cannot send money to yourself");
+        }
+        if (senderWallet.balance < amount) {
+            throw new AppError_1.default(http_status_codes_1.default.BAD_REQUEST, "Insufficient balance");
         }
         if (senderWallet.balance < amount) {
             throw new AppError_1.default(http_status_codes_1.default.BAD_REQUEST, "Insufficient balance");
@@ -41,9 +53,11 @@ const createTransfer = (payload) => __awaiter(void 0, void 0, void 0, function* 
         // Create transaction
         const transaction = yield transaction_model_1.Transaction.create([
             {
+                userId: sender,
                 sender,
                 receiver,
                 amount,
+                type: "SEND_MONEY",
                 status: "COMPLETED",
             },
         ], { session });
@@ -67,7 +81,7 @@ const addMoney = (userId, payload) => __awaiter(void 0, void 0, void 0, function
         if (!existingWallet) {
             throw new AppError_1.default(http_status_codes_1.default.NOT_FOUND, "Wallet not found");
         }
-        existingWallet.balance += amountNumber;
+        existingWallet.balance = Number(existingWallet.balance) + amountNumber;
         yield existingWallet.save({ session });
         // Create transaction
         const transaction = yield transaction_model_1.Transaction.create([
@@ -98,7 +112,7 @@ const withdrawMoney = (userId, payload) => __awaiter(void 0, void 0, void 0, fun
         if (!existingWallet) {
             throw new AppError_1.default(http_status_codes_1.default.NOT_FOUND, "Wallet not found");
         }
-        existingWallet.balance -= amountNumber;
+        existingWallet.balance = Number(existingWallet.balance) - amountNumber;
         yield existingWallet.save({ session });
         // Create transaction
         const transaction = yield transaction_model_1.Transaction.create([
@@ -125,7 +139,12 @@ const cashIn = (agentId, payload) => __awaiter(void 0, void 0, void 0, function*
     const session = yield mongoose_1.default.startSession();
     session.startTransaction();
     try {
-        const existingAgent = yield wallet_model_1.Wallet.findOne({ ownerId: agentId }).session(session);
+        const existingAgent = yield wallet_model_1.Wallet.findOne({ ownerId: agentId })
+            .populate({
+            path: "oWnerId",
+            match: { role: "AGENT", agentStatus: "approved", status: "ACTIVE" },
+        })
+            .session(session);
         const existingUser = yield wallet_model_1.Wallet.findOne({ ownerId: userId }).session(session);
         if (!existingAgent) {
             throw new AppError_1.default(http_status_codes_1.default.NOT_FOUND, "Agent not found");
@@ -144,6 +163,7 @@ const cashIn = (agentId, payload) => __awaiter(void 0, void 0, void 0, function*
         // Create transaction
         const transaction = yield transaction_model_1.Transaction.create([
             {
+                userId: agentId,
                 sender: agentId,
                 receiver: userId,
                 type: "CASH_IN",
@@ -167,10 +187,21 @@ const cashOut = (userId, payload) => __awaiter(void 0, void 0, void 0, function*
     const session = yield mongoose_1.default.startSession();
     session.startTransaction();
     try {
-        const existingAgent = yield wallet_model_1.Wallet.findOne({ ownerId: agentId }).session(session);
-        const existingUser = yield wallet_model_1.Wallet.findOne({ ownerId: userId }).session(session);
+        const existingAgent = yield wallet_model_1.Wallet.findOne({ ownerId: agentId })
+            .populate("ownerId")
+            .session(session);
+        // console.log(existingAgent);
+        const existingUser = yield wallet_model_1.Wallet.findOne({ ownerId: userId })
+            .populate({
+            path: "ownerId",
+            match: { role: "USER", status: "ACTIVE" },
+        })
+            .session(session);
+        // if (existingAgent?.ownerId.agentStatus != "approved") {
+        //   throw new AppError(httpStatus.NOT_FOUND, "approved agent not found");
+        // }
         if (!existingAgent) {
-            throw new AppError_1.default(http_status_codes_1.default.NOT_FOUND, "Agent not found");
+            throw new AppError_1.default(http_status_codes_1.default.NOT_FOUND, " agent not found");
         }
         if (!existingUser) {
             throw new AppError_1.default(http_status_codes_1.default.NOT_FOUND, "User not found");
@@ -185,6 +216,7 @@ const cashOut = (userId, payload) => __awaiter(void 0, void 0, void 0, function*
         // Create transaction
         const transaction = yield transaction_model_1.Transaction.create([
             {
+                userId: userId,
                 sender: userId,
                 receiver: agentId,
                 type: "CASH_OUT",
@@ -202,18 +234,25 @@ const cashOut = (userId, payload) => __awaiter(void 0, void 0, void 0, function*
         throw error;
     }
 });
-const getAllTransaction = () => __awaiter(void 0, void 0, void 0, function* () {
-    const result = yield transaction_model_1.Transaction.find({});
-    const totalTransaction = yield transaction_model_1.Transaction.countDocuments();
+const getAllTransaction = (query) => __awaiter(void 0, void 0, void 0, function* () {
+    const queryBuilder = new QueryBuilder_1.QueryBuilder(transaction_model_1.Transaction.find(), query || {});
+    const transactionData = queryBuilder
+        .search(transaction_constant_1.transactionSearchableFields)
+        .filter()
+        .sort()
+        .fields()
+        .paginate();
+    const [data, meta] = yield Promise.all([
+        transactionData.build(),
+        queryBuilder.getMeta(),
+    ]);
     return {
-        data: result,
-        meta: {
-            total: totalTransaction,
-        },
+        data,
+        meta,
     };
 });
 const getSingleTransaction = (id) => __awaiter(void 0, void 0, void 0, function* () {
-    const result = yield transaction_model_1.Transaction.findById({ _id: id });
+    const result = yield transaction_model_1.Transaction.find({ userId: id });
     return {
         data: result,
     };

@@ -11,7 +11,7 @@ const userSchema = new Schema<IUser>(
       enum: Object.values(Role),
       default: Role.USER,
     },
-
+    mobile: { type: String },
     status: {
       type: String,
       enum: Object.values(Status),

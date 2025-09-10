@@ -19,7 +19,7 @@ exports.createUserZodSchema = zod_1.default.object({
     password: zod_1.default
         .string()
         .min(6, { message: "Password must be at least 6 characters long." }),
-    role: zod_1.default.string(),
+    role: zod_1.default.string().optional(),
 });
 exports.updateUserZodSchema = zod_1.default.object({
     name: zod_1.default

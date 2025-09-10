@@ -1,5 +1,3 @@
-import { Types } from "mongoose";
-
 export enum Role {
   SUPER_ADMIN = "SUPER_ADMIN",
   ADMIN = "ADMIN",
@@ -25,11 +23,11 @@ export enum IsActive {
 }
 
 export interface IUser {
-
   name: string;
   email: string;
   password: string;
   role: Role;
+  mobile?: string;
   status: Status;
   agentStatus: AgentStatus;
   isDeleted?: string;

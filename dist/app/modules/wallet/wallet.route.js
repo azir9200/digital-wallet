@@ -12,14 +12,6 @@ const router = express_1.default.Router();
 // router.post("/", WalletController.createWallet);
 router.get("/", (0, checkAuth_1.checkAuth)(user_interface_1.Role.ADMIN, user_interface_1.Role.SUPER_ADMIN), wallet_controller_1.WalletController.getAllWallet);
 router.get("/getMe", (0, checkAuth_1.checkAuth)(user_interface_1.Role.ADMIN, user_interface_1.Role.SUPER_ADMIN, user_interface_1.Role.AGENT, user_interface_1.Role.USER), wallet_controller_1.WalletController.getSingleWallet);
-// router.patch(
-//   "/:id",
-//   checkAuth(Role.ADMIN, Role.SUPER_ADMIN),
-//   WalletController.updateWallet
-// );
-// router.delete(
-//   "/:id",
-//   checkAuth(Role.ADMIN, Role.SUPER_ADMIN),
-//   WalletController.deleteWallet
-// );
+router.patch("/:id", (0, checkAuth_1.checkAuth)(user_interface_1.Role.ADMIN, user_interface_1.Role.SUPER_ADMIN), wallet_controller_1.WalletController.updateWallet);
+router.delete("/:id", (0, checkAuth_1.checkAuth)(user_interface_1.Role.ADMIN, user_interface_1.Role.SUPER_ADMIN), wallet_controller_1.WalletController.deleteWallet);
 exports.WalletRoutes = router;

@@ -21,8 +21,11 @@ const http_status_codes_1 = __importDefault(require("http-status-codes"));
 const jwt_1 = require("../utils/jwt");
 const user_interface_1 = require("../modules/user/user.interface");
 const checkAuth = (...authRoles) => (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     try {
-        const accessToken = req.headers.authorization;
+        const accessToken = req.headers.authorization || ((_a = req.cookies) === null || _a === void 0 ? void 0 : _a.accessToken);
+        console.log("check auth", accessToken);
+        // const accessToken = req.headers.authorization;
         if (!accessToken) {
             throw new AppError_1.default(403, "No Token Received");
         }
@@ -31,12 +34,19 @@ const checkAuth = (...authRoles) => (req, res, next) => __awaiter(void 0, void 0
         if (!isUserExist) {
             throw new AppError_1.default(http_status_codes_1.default.BAD_REQUEST, "User does not exist");
         }
+        //Blocked user
         if (isUserExist.status === user_interface_1.Status.BLOCKED) {
             throw new AppError_1.default(http_status_codes_1.default.BAD_REQUEST, `User is ${isUserExist.status}`);
         }
+        // Deleted user
         if (isUserExist.isDeleted) {
             throw new AppError_1.default(http_status_codes_1.default.BAD_REQUEST, "User is deleted");
         }
+        if (isUserExist.role === "AGENT" &&
+            isUserExist.agentStatus !== "approved") {
+            throw new AppError_1.default(http_status_codes_1.default.FORBIDDEN, `Agent is ${isUserExist.status}. Please wait for admin approval.`);
+        }
+        // Role check
         if (!authRoles.includes(verifiedToken.role)) {
             throw new AppError_1.default(403, "You are not permitted to view this route!!!");
         }
