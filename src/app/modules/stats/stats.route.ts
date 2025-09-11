@@ -12,8 +12,13 @@ router.get(
 );
 router.get(
   "/transaction",
-//   checkAuth(Role.ADMIN, Role.SUPER_ADMIN),
-StatsController.getTransactionStats
+  //   checkAuth(Role.ADMIN, Role.SUPER_ADMIN),
+  StatsController.getTransactionStats
+);
+router.get(
+  "/wallet",
+  //   checkAuth(Role.ADMIN, Role.SUPER_ADMIN),
+  StatsController.getWalletStats
 );
 
 export const StatsRoutes = router;

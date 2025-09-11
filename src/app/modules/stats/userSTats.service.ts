@@ -62,9 +62,7 @@ const getUserStats = async () => {
   };
 };
 
-export const StatsService = {
-  // getBookingStats,
-  // getPaymentStats,
-  // getTourStats,
+export const UserStatsService = {
+  
   getUserStats,
 };
