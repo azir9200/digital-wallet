@@ -12,6 +12,7 @@ const userSchema = new mongoose_1.Schema({
         enum: Object.values(user_interface_1.Role),
         default: user_interface_1.Role.USER,
     },
+    mobile: { type: String },
     status: {
         type: String,
         enum: Object.values(user_interface_1.Status),

@@ -12,10 +12,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.StatsController = void 0;
 const catchAsync_1 = require("../../utils/catchAsync");
 const sendResponse_1 = require("../../utils/sendResponse");
-const stats_service_1 = require("./stats.service");
-const statTransactioService_1 = require("./statTransactioService");
+const statTransactionService_1 = require("./statTransactionService");
+const userSTats_service_1 = require("./userSTats.service");
+const walletStatService_1 = require("./walletStatService");
 const getUserStats = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const stats = yield stats_service_1.StatsService.getUserStats();
+    const stats = yield userSTats_service_1.UserStatsService.getUserStats();
     (0, sendResponse_1.sendResponse)(res, {
         statusCode: 200,
         success: true,
@@ -24,7 +25,7 @@ const getUserStats = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0
     });
 }));
 const getTransactionStats = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const stats = yield statTransactioService_1.StatsTransactionService.getTransactionStats();
+    const stats = yield statTransactionService_1.StatsTransactionService.getTransactionStats();
     (0, sendResponse_1.sendResponse)(res, {
         statusCode: 200,
         success: true,
@@ -32,7 +33,17 @@ const getTransactionStats = (0, catchAsync_1.catchAsync)((req, res) => __awaiter
         data: stats,
     });
 }));
+const getWalletStats = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const stats = yield walletStatService_1.WalletStatService.getWalletStats();
+    (0, sendResponse_1.sendResponse)(res, {
+        statusCode: 200,
+        success: true,
+        message: "Wallet stats fetched successfully",
+        data: stats,
+    });
+}));
 exports.StatsController = {
     getUserStats,
     getTransactionStats,
+    getWalletStats,
 };

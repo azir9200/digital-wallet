@@ -21,9 +21,9 @@ const http_status_codes_1 = __importDefault(require("http-status-codes"));
 const jwt_1 = require("../utils/jwt");
 const user_interface_1 = require("../modules/user/user.interface");
 const checkAuth = (...authRoles) => (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
+    var _a, _b;
     try {
-        const accessToken = req.headers.authorization || ((_a = req.cookies) === null || _a === void 0 ? void 0 : _a.accessToken);
+        const accessToken = ((_a = req === null || req === void 0 ? void 0 : req.headers) === null || _a === void 0 ? void 0 : _a.authorization) || ((_b = req === null || req === void 0 ? void 0 : req.cookies) === null || _b === void 0 ? void 0 : _b.accessToken);
         console.log("check auth", accessToken);
         // const accessToken = req.headers.authorization;
         if (!accessToken) {
@@ -50,7 +50,7 @@ const checkAuth = (...authRoles) => (req, res, next) => __awaiter(void 0, void 0
         if (!authRoles.includes(verifiedToken.role)) {
             throw new AppError_1.default(403, "You are not permitted to view this route!!!");
         }
-        req.user = verifiedToken;
+        req.user = isUserExist;
         next();
     }
     catch (error) {

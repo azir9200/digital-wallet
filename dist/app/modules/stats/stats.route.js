@@ -13,4 +13,7 @@ router.get("/user", (0, checkAuth_1.checkAuth)(user_interface_1.Role.ADMIN, user
 router.get("/transaction", 
 //   checkAuth(Role.ADMIN, Role.SUPER_ADMIN),
 stats_controller_1.StatsController.getTransactionStats);
+router.get("/wallet", 
+//   checkAuth(Role.ADMIN, Role.SUPER_ADMIN),
+stats_controller_1.StatsController.getWalletStats);
 exports.StatsRoutes = router;

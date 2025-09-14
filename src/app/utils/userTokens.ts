@@ -1,8 +1,9 @@
-import { JwtPayload } from "jsonwebtoken";
+
 import { envVars } from "../config/env";
 import { IUser } from "../modules/user/user.interface";
 import { generateToken, verifyToken } from "./jwt";
 import { User } from "../modules/user/user.model";
+import { JwtPayload } from "jsonwebtoken";
 
 export const createUserTokens = (user: Partial<IUser>) => {
   const jwtPayload = {

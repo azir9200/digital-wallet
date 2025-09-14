@@ -1,3 +1,4 @@
+
 import { model, Schema } from "mongoose";
 import { AgentStatus, IUser, Role, Status } from "./user.interface";
 
