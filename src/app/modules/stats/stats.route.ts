@@ -12,12 +12,12 @@ router.get(
 );
 router.get(
   "/transaction",
-  //   checkAuth(Role.ADMIN, Role.SUPER_ADMIN),
+    checkAuth(Role.ADMIN, Role.SUPER_ADMIN),
   StatsController.getTransactionStats
 );
 router.get(
   "/wallet",
-  //   checkAuth(Role.ADMIN, Role.SUPER_ADMIN),
+    checkAuth(Role.ADMIN, Role.SUPER_ADMIN),
   StatsController.getWalletStats
 );
 

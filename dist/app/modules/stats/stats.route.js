@@ -10,10 +10,6 @@ const user_interface_1 = require("../user/user.interface");
 const stats_controller_1 = require("./stats.controller");
 const router = express_1.default.Router();
 router.get("/user", (0, checkAuth_1.checkAuth)(user_interface_1.Role.ADMIN, user_interface_1.Role.SUPER_ADMIN), stats_controller_1.StatsController.getUserStats);
-router.get("/transaction", 
-//   checkAuth(Role.ADMIN, Role.SUPER_ADMIN),
-stats_controller_1.StatsController.getTransactionStats);
-router.get("/wallet", 
-//   checkAuth(Role.ADMIN, Role.SUPER_ADMIN),
-stats_controller_1.StatsController.getWalletStats);
+router.get("/transaction", (0, checkAuth_1.checkAuth)(user_interface_1.Role.ADMIN, user_interface_1.Role.SUPER_ADMIN), stats_controller_1.StatsController.getTransactionStats);
+router.get("/wallet", (0, checkAuth_1.checkAuth)(user_interface_1.Role.ADMIN, user_interface_1.Role.SUPER_ADMIN), stats_controller_1.StatsController.getWalletStats);
 exports.StatsRoutes = router;

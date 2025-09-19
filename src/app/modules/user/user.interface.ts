@@ -24,7 +24,7 @@ export enum IsActive {
 
 export interface IUser {
   id?: string;
-   name: string;
+  name: string;
   email: string;
   password: string;
   role: Role;

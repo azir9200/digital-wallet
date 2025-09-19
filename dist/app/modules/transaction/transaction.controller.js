@@ -15,7 +15,10 @@ const sendResponse_1 = require("../../utils/sendResponse");
 const transaction_service_1 = require("./transaction.service");
 const createTransfer = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
-    const senderId = (_a = req.user) === null || _a === void 0 ? void 0 : _a._id;
+    const senderId = (_a = req.tokenPayload) === null || _a === void 0 ? void 0 : _a.id;
+    if (!senderId) {
+        throw new Error("This user is found");
+    }
     const result = yield transaction_service_1.TransactionService.createTransfer(req.body, senderId);
     (0, sendResponse_1.sendResponse)(res, {
         statusCode: 201,
@@ -25,7 +28,11 @@ const createTransfer = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void
     });
 }));
 const addMoney = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const userId = req.user;
+    var _a;
+    const userId = (_a = req.tokenPayload) === null || _a === void 0 ? void 0 : _a.id;
+    if (!userId) {
+        throw new Error("This user is found");
+    }
     const result = yield transaction_service_1.TransactionService.addMoney(userId, req.body);
     (0, sendResponse_1.sendResponse)(res, {
         statusCode: 201,
@@ -35,8 +42,11 @@ const addMoney = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, vo
     });
 }));
 const withdrawMoney = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const userId = req.user;
-    console.log("object id", userId, req.user);
+    var _a;
+    const userId = (_a = req.tokenPayload) === null || _a === void 0 ? void 0 : _a.id;
+    if (!userId) {
+        throw new Error("This user is found");
+    }
     const result = yield transaction_service_1.TransactionService.withdrawMoney(userId, req.body);
     (0, sendResponse_1.sendResponse)(res, {
         statusCode: 201,
@@ -46,7 +56,11 @@ const withdrawMoney = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 
     });
 }));
 const cashIn = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const userId = req.user;
+    var _a;
+    const userId = (_a = req.tokenPayload) === null || _a === void 0 ? void 0 : _a.id;
+    if (!userId) {
+        throw new Error("This user is found");
+    }
     const result = yield transaction_service_1.TransactionService.cashIn(userId, req.body);
     (0, sendResponse_1.sendResponse)(res, {
         statusCode: 201,
@@ -56,7 +70,11 @@ const cashIn = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void
     });
 }));
 const cashOut = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const agentId = req.user;
+    var _a;
+    const agentId = (_a = req.tokenPayload) === null || _a === void 0 ? void 0 : _a.id;
+    if (!agentId) {
+        throw new Error("This user is found");
+    }
     const result = yield transaction_service_1.TransactionService.cashOut(agentId, req.body);
     (0, sendResponse_1.sendResponse)(res, {
         statusCode: 201,
@@ -77,7 +95,11 @@ const getAllTransaction = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(v
     });
 }));
 const getSingleTransaction = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const id = req.user;
+    var _a;
+    const id = (_a = req.tokenPayload) === null || _a === void 0 ? void 0 : _a.id;
+    if (!id) {
+        throw new Error("This user is found");
+    }
     const result = yield transaction_service_1.TransactionService.getSingleTransaction(id);
     (0, sendResponse_1.sendResponse)(res, {
         statusCode: 200,

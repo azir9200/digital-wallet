@@ -25,7 +25,8 @@ app.use((0, cookie_parser_1.default)());
 app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: true }));
 app.use((0, cors_1.default)({
-    origin: "http://localhost:3000",
+    origin: "https://digital-wallet-transactly.vercel.app",
+    // origin: "http://localhost:3000",
     credentials: true,
 }));
 app.use("/api/v1", routes_1.router);

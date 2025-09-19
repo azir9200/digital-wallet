@@ -33,7 +33,11 @@ const getAllWallet = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0
     });
 }));
 const getSingleWallet = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const id = req.user.id;
+    var _a;
+    const id = (_a = req.tokenPayload) === null || _a === void 0 ? void 0 : _a.id;
+    if (!id) {
+        throw new Error("This user is found");
+    }
     const result = yield wallet_service_1.WalletService.getSingleWallet(id);
     (0, sendResponse_1.sendResponse)(res, {
         statusCode: 200,
@@ -44,7 +48,6 @@ const getSingleWallet = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(voi
 }));
 const updateWallet = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const id = req.params.id;
-    // console.log("wallet control", id);
     const result = yield wallet_service_1.WalletService.updateWallet(id, req.body);
     (0, sendResponse_1.sendResponse)(res, {
         statusCode: 200,

@@ -24,7 +24,10 @@ const getAllWallet = catchAsync(async (req: Request, res: Response) => {
   });
 });
 const getSingleWallet = catchAsync(async (req: Request, res: Response) => {
-  const id = req.user.id;
+  const id = req.tokenPayload?.id;
+  if (!id) {
+    throw new Error("This user is found");
+  }
 
   const result = await WalletService.getSingleWallet(id);
   sendResponse(res, {
@@ -37,7 +40,7 @@ const getSingleWallet = catchAsync(async (req: Request, res: Response) => {
 
 const updateWallet = catchAsync(async (req: Request, res: Response) => {
   const id = req.params.id;
-  // console.log("wallet control", id);
+
   const result = await WalletService.updateWallet(id, req.body);
   sendResponse(res, {
     statusCode: 200,

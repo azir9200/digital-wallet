@@ -15,7 +15,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.checkAuth = void 0;
 const env_1 = require("../config/env");
 const AppError_1 = __importDefault(require("../errorHelpers/AppError"));
-// import { verifyToken } from "../utils/jwt";
 const user_model_1 = require("../modules/user/user.model");
 const http_status_codes_1 = __importDefault(require("http-status-codes"));
 const jwt_1 = require("../utils/jwt");
@@ -24,8 +23,6 @@ const checkAuth = (...authRoles) => (req, res, next) => __awaiter(void 0, void 0
     var _a, _b;
     try {
         const accessToken = ((_a = req === null || req === void 0 ? void 0 : req.headers) === null || _a === void 0 ? void 0 : _a.authorization) || ((_b = req === null || req === void 0 ? void 0 : req.cookies) === null || _b === void 0 ? void 0 : _b.accessToken);
-        console.log("check auth", accessToken);
-        // const accessToken = req.headers.authorization;
         if (!accessToken) {
             throw new AppError_1.default(403, "No Token Received");
         }
@@ -50,7 +47,8 @@ const checkAuth = (...authRoles) => (req, res, next) => __awaiter(void 0, void 0
         if (!authRoles.includes(verifiedToken.role)) {
             throw new AppError_1.default(403, "You are not permitted to view this route!!!");
         }
-        req.user = isUserExist;
+        req.user = verifiedToken;
+        req.tokenPayload = verifiedToken;
         next();
     }
     catch (error) {

@@ -57,11 +57,12 @@ const getSingleUser = catchAsync(async (req: Request, res: Response) => {
   });
 });
 const getMe = catchAsync(async (req: Request, res: Response) => {
-  const id = req?.user?.id;
-  console.log(" id", id);
-  console.log(" id", req.user);
+  const id = req.tokenPayload?.id;
+  if (!id) {
+    throw new Error("This user is found");
+  }
   const result = await UserServices.getMe(id);
-  console.log("res", result);
+
   sendResponse(res, {
     success: true,
     statusCode: httpStatus.CREATED,

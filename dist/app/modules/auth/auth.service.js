@@ -31,7 +31,7 @@ const authLogin = (payload) => __awaiter(void 0, void 0, void 0, function* () {
         throw new AppError_1.default(http_status_codes_1.default.BAD_REQUEST, "Incorrect Password");
     }
     const jwtPayload = {
-        id: isUserExist._id,
+        userId: isUserExist._id,
         email: isUserExist.email,
         role: isUserExist.role,
     };
