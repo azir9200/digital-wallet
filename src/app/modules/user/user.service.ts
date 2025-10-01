@@ -1,14 +1,15 @@
+import bcrypt from "bcrypt";
 import httpStatus from "http-status-codes";
-import bcryptjs from "bcryptjs";
-import AppError from "../../errorHelpers/AppError";
-import { IUser, Role } from "./user.interface";
-import { User } from "./user.model";
-import { envVars } from "../../config/env";
-import { Wallet } from "../wallet/wallet.model";
-import mongoose from "mongoose";
-import { QueryBuilder } from "../../utils/QueryBuilder";
-import { userSearchableFields } from "./user.constant";
 import { JwtPayload } from "jsonwebtoken";
+import mongoose from "mongoose";
+import { envVars } from "../../config/env";
+import AppError from "../../errorHelpers/AppError";
+import { QueryBuilder } from "../../utils/QueryBuilder";
+import { Transaction } from "../transaction/transaction.model";
+import { Wallet } from "../wallet/wallet.model";
+import { userSearchableFields } from "./user.constant";
+import { IUser } from "./user.interface";
+import { User } from "./user.model";
 
 const createUser = async (payload: Partial<IUser>) => {
   const { name, email, password, role } = payload;
@@ -16,16 +17,15 @@ const createUser = async (payload: Partial<IUser>) => {
   if (isUserExist) {
     throw new AppError(httpStatus.BAD_REQUEST, "User Already Exists");
   }
-  if (!password) {
-    throw new AppError(httpStatus.BAD_REQUEST, "Password is required");
-  }
 
   const session = await mongoose.startSession();
 
   try {
     session.startTransaction();
-
-    const hashedPassword = await bcryptjs.hash(
+    if (!password) {
+      throw new Error("Password is required");
+    }
+    const hashedPassword = await bcrypt.hash(
       password,
       Number(envVars.BCRYPT_SALT_ROUND)
     );
@@ -87,6 +87,7 @@ const getAllUsers = async (query: Record<string, string>) => {
 const getAllAgents = async (query: Record<string, string>) => {
   const queryBuilder = new QueryBuilder(
     User.find({ role: "AGENT" }),
+
     query || {}
   );
   const userData = queryBuilder
@@ -105,7 +106,6 @@ const getAllAgents = async (query: Record<string, string>) => {
     meta,
   };
 };
-
 const getSingleUser = async (id: string) => {
   const user = await User.findById(id).select("-password");
   return {
@@ -113,27 +113,21 @@ const getSingleUser = async (id: string) => {
   };
 };
 
-const getMe = async (id: string) => {
-  const result = await User.findOne({ _id: id }).select("-password");
-
-  return result;
-};
-
-const actionUser = async (id: string, payload: Partial<IUser>) => {
-  const user = await User.findById(id);
+const actionUser = async (userId: string, payload: Partial<IUser>) => {
+  const user = await User.findById(userId);
 
   if (!user) {
     throw new AppError(httpStatus.NOT_FOUND, "User not found");
   }
-  if (payload.role) {
-    user.role = payload.role;
+
+  if (payload.status) {
+    user.status = payload.status;
   }
-  // user.status = payload.status;
+
   await user.save();
 
   return user;
 };
-
 const agentApproved = async (id: string, payload: Partial<IUser>) => {
   const agent = await User.findOne({ _id: id, role: "AGENT" });
 
@@ -143,64 +137,170 @@ const agentApproved = async (id: string, payload: Partial<IUser>) => {
   if (payload.agentStatus) {
     agent.agentStatus = payload.agentStatus;
   }
-  // agent.role = payload.role;
+
   await agent.save();
 
   return agent;
 };
-const updateUser = async (
-  userId: string,
-  payload: Partial<IUser>,
-  decodedToken: JwtPayload
+const getMe = async (id: string) => {
+  const result = await User.findOne({ _id: id }).select("-password");
+
+  return result;
+};
+
+const changePassword = async (
+  userData: JwtPayload,
+  payload: { oldPassword: string; newPassword: string }
 ) => {
-  if (decodedToken.role === Role.USER || decodedToken.role === Role.AGENT) {
-    if (userId !== decodedToken.userId) {
-      throw new AppError(401, "You are not authorized");
-    }
+  const user = await User.findOne({ email: userData.email });
+
+  if (!user) {
+    throw new AppError(httpStatus.NOT_FOUND, "This user is not found !");
   }
 
-  const ifUserExist = await User.findById(userId);
-
-  if (!ifUserExist) {
-    throw new AppError(httpStatus.NOT_FOUND, "User Not Found");
+  // check if user is deleted
+  if (user.isDeleted) {
+    throw new AppError(httpStatus.FORBIDDEN, "This user is deleted!");
   }
 
-  if (
-    decodedToken.role === Role.ADMIN &&
-    ifUserExist.role === Role.SUPER_ADMIN
-  ) {
-    throw new AppError(401, "You are not authorized");
+  // check if old password is correct
+  const isMatched = await bcrypt.compare(payload.oldPassword, user.password);
+  if (!isMatched) {
+    throw new AppError(httpStatus.FORBIDDEN, "Password does not match!");
   }
-  if (payload.role) {
-    if (decodedToken.role === Role.USER || decodedToken.role === Role.AGENT) {
-      throw new AppError(httpStatus.FORBIDDEN, "You are not authorized");
-    }
-  }
-  if (payload.password) {
-    payload.password = await bcryptjs.hash(
-      payload.password,
-      envVars.BCRYPT_SALT_ROUND
-    );
-  }
-  const newUpdatedUser = await User.findByIdAndUpdate(userId, payload, {
-    new: true,
-    runValidators: true,
+
+  // hash new password
+  const newHashedPassword = await bcrypt.hash(payload.newPassword, Number(10));
+
+  // update password
+  await User.findOneAndUpdate(
+    { email: userData.email, role: userData.role },
+    { password: newHashedPassword },
+    { new: true }
+  );
+
+  return { message: "Password changed successfully" };
+};
+const monthNames = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
+
+const getChartData = async () => {
+  // ১) Transaction Volume (amount sum + count)
+  const transactionAgg = await Transaction.aggregate([
+    { $match: { status: "COMPLETED" } },
+    {
+      $group: {
+        _id: { $month: "$createdAt" },
+        volume: { $sum: "$amount" },
+        transactions: { $sum: 1 },
+      },
+    },
+    { $sort: { _id: 1 } },
+  ]);
+
+  const transactionVolume = transactionAgg.map((item) => ({
+    month: monthNames[item._id - 1],
+    volume: item.volume,
+    transactions: item.transactions,
+  }));
+
+  // ২) User Growth (users + agents per month)
+  const userAgg = await User.aggregate([
+    {
+      $group: {
+        _id: { $month: "$createdAt" },
+        users: { $sum: { $cond: [{ $eq: ["$role", "USER"] }, 1, 0] } },
+        agents: { $sum: { $cond: [{ $eq: ["$role", "AGENT"] }, 1, 0] } },
+      },
+    },
+    { $sort: { _id: 1 } },
+  ]);
+
+  const userGrowth = userAgg.map((item) => ({
+    month: monthNames[item._id - 1],
+    users: item.users,
+    agents: item.agents,
+  }));
+
+  return { transactionVolume, userGrowth };
+};
+const getAdminStats = async () => {
+  // Total Users
+  const totalUsers = await User.countDocuments({ isDeleted: false });
+
+  // Total Agents (approved only)
+  const totalAgents = await User.countDocuments({
+    role: "AGENT",
+    agentstatus: "approved",
+    isDeleted: false,
   });
 
-  return newUpdatedUser;
+  // Total Transactions
+  const totalTransactions = await Transaction.countDocuments();
+
+  // Total Volume
+  const totalVolumeAgg = await Transaction.aggregate([
+    { $match: { status: "COMPLETED" } },
+    { $group: { _id: null, total: { $sum: "$amount" } } },
+  ]);
+  const totalVolume = totalVolumeAgg[0]?.total || 0;
+
+  // System Fees
+  const systemFeesAgg = await Transaction.aggregate([
+    { $match: { status: "COMPLETED" } },
+    { $group: { _id: null, total: { $sum: "$fee" } } },
+  ]);
+  const systemFees = systemFeesAgg[0]?.total || 0;
+
+  return {
+    totalUsers,
+    totalAgents,
+    totalTransactions,
+    totalVolume,
+    systemFees,
+  };
 };
-const deleteUser = async (id: string) => {
-  await Wallet.findByIdAndDelete(id);
-  return null;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const UserProfileUpdate = async (id: string, body: Partial<any>) => {
+  const user = await User.findById(id);
+
+  if (!user) {
+    throw new AppError(httpStatus.NOT_FOUND, "user not found!");
+  }
+
+  const result = await User.findByIdAndUpdate(id, body, {
+    new: true, // return updated doc
+    runValidators: true, // validate against schema
+  });
+
+  if (!result) {
+    throw new AppError(httpStatus.NOT_FOUND, "User not found");
+  }
+
+  return result;
 };
 export const UserServices = {
   createUser,
   getAllUsers,
-  getAllAgents,
   getSingleUser,
-  getMe,
   actionUser,
   agentApproved,
-  updateUser,
-  deleteUser,
+  getAllAgents,
+  getMe,
+  changePassword,
+  UserProfileUpdate,
+  getChartData,
+  getAdminStats,
 };

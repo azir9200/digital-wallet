@@ -6,35 +6,24 @@ export enum Role {
 }
 export enum Status {
   ACTIVE = "ACTIVE",
-  InACTIVE = "InACTIVE",
   BLOCKED = "BLOCKED",
 }
-
-export enum AgentStatus {
+export enum agentStatus {
   PENDING = "pending",
   APPROVED = "approved",
   SUSPENDED = "suspended",
 }
 
-export enum IsActive {
-  ACTIVE = "ACTIVE",
-  INACTIVE = "INACTIVE",
-  BLOCKED = "BLOCKED",
-}
-
 export interface IUser {
-  id?: string;
+  _id?: string;
+  agentStatus: agentStatus;
   name: string;
   email: string;
   password: string;
   role: Role;
-  mobile?: string;
   status: Status;
-  agentStatus: AgentStatus;
   isDeleted?: string;
-  isActive?: IsActive;
-  isVerified?: boolean;
-  commissionRate?: number;
+  commissionRate?: number; // Only for agents
   createdAt?: Date;
   updatedAt?: Date;
 }

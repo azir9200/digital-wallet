@@ -1,9 +1,9 @@
 import { Router } from "express";
-import { UserControllers } from "./user.controller";
-import { validateRequest } from "../../middlewares/validateRequest";
-import { createUserZodSchema, updateUserZodSchema } from "./user.validation";
 import { checkAuth } from "../../middlewares/checkAuth";
+import { validateRequest } from "../../middlewares/validateRequest";
+import { UserControllers } from "./user.controller";
 import { Role } from "./user.interface";
+import { createUserZodSchema, updateUserZodSchema } from "./user.validation";
 
 const router = Router();
 
@@ -14,25 +14,13 @@ router.post(
 );
 router.get(
   "/all-users",
-  // checkAuth(Role.ADMIN, Role.SUPER_ADMIN, Role.AGENT),
+  checkAuth(...Object.values(Role)),
   UserControllers.getAllUsers
 );
 router.get(
   "/all-agents",
-  checkAuth(Role.ADMIN, Role.SUPER_ADMIN),
+  checkAuth(...Object.values(Role)),
   UserControllers.getAllAgents
-);
-
-router.get(
-  "/:id",
-  checkAuth(...Object.values(Role)),
-  UserControllers.getSingleUser
-);
-
-router.get(
-  "/user/me",
-  checkAuth(...Object.values(Role)),
-  UserControllers.getMe
 );
 
 router.patch(
@@ -41,21 +29,27 @@ router.patch(
   checkAuth(Role.ADMIN, Role.SUPER_ADMIN),
   UserControllers.actionUser
 );
+router.get(
+  "/user/me",
+  checkAuth(...Object.values(Role)),
+  UserControllers.getMe
+);
 router.patch(
   "/agents/:id",
   checkAuth(Role.ADMIN, Role.SUPER_ADMIN),
-  UserControllers.agentApproved
+  UserControllers.agenApproved
+);
+router.post(
+  "/change-password",
+  checkAuth(...Object.values(Role)),
+  UserControllers.changePassword
 );
 router.patch(
-  "/:id",
-  validateRequest(updateUserZodSchema),
+  "/profile-edit/edit",
   checkAuth(...Object.values(Role)),
-  UserControllers.updateUser
+  UserControllers.UserProfileUpdate
 );
-router.delete(
-  "/:id",
-  checkAuth(Role.ADMIN, Role.SUPER_ADMIN),
-  UserControllers.deleteUser
-);
+router.get("/chart-data", UserControllers.getChartData);
+router.get("/stats", UserControllers.getAdminStats);
 
 export const UserRoutes = router;

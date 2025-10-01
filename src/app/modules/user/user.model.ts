@@ -1,6 +1,5 @@
-
 import { model, Schema } from "mongoose";
-import { AgentStatus, IUser, Role, Status } from "./user.interface";
+import { agentStatus, IUser, Role, Status } from "./user.interface";
 
 const userSchema = new Schema<IUser>(
   {
@@ -12,16 +11,15 @@ const userSchema = new Schema<IUser>(
       enum: Object.values(Role),
       default: Role.USER,
     },
-    mobile: { type: String },
+    agentStatus: {
+      type: String,
+      enum: Object.values(agentStatus), // ✅ use enum values
+      default: agentStatus.PENDING, // ✅ use enum default
+    },
     status: {
       type: String,
       enum: Object.values(Status),
       default: Status.ACTIVE,
-    },
-    agentStatus: {
-      type: String,
-      enum: Object.values(AgentStatus),
-      default: AgentStatus.PENDING,
     },
     isDeleted: { type: Boolean, default: false },
     commissionRate: { type: Number },

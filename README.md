@@ -1,6 +1,6 @@
 # 💸 Digital Wallet API
 
-A secure and role-based digital wallet backend system inspired by mobile wallet platforms like bKash or Nagad. Built with Express.js, TypeScript, and MongoDB, the system supports three distinct user roles: Admin, User, and Agent.
+A secure and role-based digital wallet backend system inspired by mobile wallet platforms where money flies one to another. Built with Express.js, TypeScript, and MongoDB, the system supports three distinct user roles: Admin, User, and Agent.
 
 ---
 

@@ -6,7 +6,6 @@ import { User } from "../modules/user/user.model";
 import httpStatus from "http-status-codes";
 import { verifyToken } from "../utils/jwt";
 import { Status } from "../modules/user/user.interface";
-import { CustomJwtPayload } from "../type/jwt";
 
 export const checkAuth =
   (...authRoles: string[]) =>
@@ -21,9 +20,11 @@ export const checkAuth =
       const verifiedToken = verifyToken(
         accessToken,
         envVars.JWT_ACCESS_SECRET
-      ) as CustomJwtPayload;
-
-      const isUserExist = await User.findOne({ email: verifiedToken.email });
+      ) as JwtPayload;
+      console.log(verifiedToken);
+      const isUserExist = await User.findOne({
+        email: verifiedToken.email,
+      });
 
       if (!isUserExist) {
         throw new AppError(httpStatus.BAD_REQUEST, "User does not exist");
@@ -41,7 +42,6 @@ export const checkAuth =
       if (isUserExist.isDeleted) {
         throw new AppError(httpStatus.BAD_REQUEST, "User is deleted");
       }
-
       if (
         isUserExist.role === "AGENT" &&
         isUserExist.agentStatus !== "approved"
@@ -51,13 +51,12 @@ export const checkAuth =
           `Agent is ${isUserExist.status}. Please wait for admin approval.`
         );
       }
-      // Role check
+      // ✅ Role permission check
       if (!authRoles.includes(verifiedToken.role)) {
         throw new AppError(403, "You are not permitted to view this route!!!");
       }
 
-      req.user = verifiedToken as JwtPayload & { role: string };
-      req.tokenPayload = verifiedToken;
+      req.user = verifiedToken;
       next();
     } catch (error) {
       console.log("jwt error", error);

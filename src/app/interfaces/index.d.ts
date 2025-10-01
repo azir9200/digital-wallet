@@ -1,11 +1,9 @@
-import { IUser } from "../modules/user/user.interface";
-import { CustomJwtPayload } from "../type/jwt";
+import { JwtPayload } from "jsonwebtoken";
 
 declare global {
   namespace Express {
     interface Request {
-      user?: IUser;
-      tokenPayload?: CustomJwtPayload;
+      user: JwtPayload;
     }
   }
 }

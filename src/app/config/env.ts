@@ -1,6 +1,7 @@
 import dotenv from "dotenv";
 
 dotenv.config();
+console.log("Loaded envs:", process.env.BCRYPT_SALT_ROUND);
 
 interface EnvConfig {
   PORT: string;
@@ -41,7 +42,7 @@ const loadEnvVariables = (): EnvConfig => {
 
   requiredEnvVariables.forEach((key) => {
     if (!process.env[key]) {
-      throw new Error(`Missing require environment variabl ${key}`);
+      throw new Error(`Missing require environment variable ${key}`);
     }
   });
 
