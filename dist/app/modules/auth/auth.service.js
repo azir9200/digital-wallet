@@ -15,11 +15,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthServices = void 0;
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const http_status_codes_1 = __importDefault(require("http-status-codes"));
-const AppError_1 = __importDefault(require("../../errorHelpers/AppError"));
-const user_model_1 = require("../user/user.model");
 const env_1 = require("../../config/env");
+const AppError_1 = __importDefault(require("../../errorHelpers/AppError"));
 const jwt_1 = require("../../utils/jwt");
 const userTokens_1 = require("../../utils/userTokens");
+const user_model_1 = require("../user/user.model");
 const authLogin = (payload) => __awaiter(void 0, void 0, void 0, function* () {
     const { email, password } = payload;
     const isUserExist = yield user_model_1.User.findOne({ email });
@@ -31,7 +31,7 @@ const authLogin = (payload) => __awaiter(void 0, void 0, void 0, function* () {
         throw new AppError_1.default(http_status_codes_1.default.BAD_REQUEST, "Incorrect Password");
     }
     const jwtPayload = {
-        userId: isUserExist._id,
+        id: isUserExist._id,
         email: isUserExist.email,
         role: isUserExist.role,
     };

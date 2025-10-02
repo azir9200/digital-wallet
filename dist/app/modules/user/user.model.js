@@ -12,16 +12,15 @@ const userSchema = new mongoose_1.Schema({
         enum: Object.values(user_interface_1.Role),
         default: user_interface_1.Role.USER,
     },
-    mobile: { type: String },
+    agentstatus: {
+        type: String,
+        enum: Object.values(user_interface_1.agentStatus), // ✅ use enum values
+        default: user_interface_1.agentStatus.PENDING, // ✅ use enum default
+    },
     status: {
         type: String,
         enum: Object.values(user_interface_1.Status),
         default: user_interface_1.Status.ACTIVE,
-    },
-    agentStatus: {
-        type: String,
-        enum: Object.values(user_interface_1.AgentStatus),
-        default: user_interface_1.AgentStatus.PENDING,
     },
     isDeleted: { type: Boolean, default: false },
     commissionRate: { type: Number },

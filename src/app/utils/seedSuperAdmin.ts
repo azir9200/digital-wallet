@@ -33,7 +33,7 @@ export const seedSuperAdmin = async () => {
       email: envVars.SUPER_ADMIN_EMAIL,
       password: hashedPassword,
       status: Status.ACTIVE,
-      agentStatus: agentStatus.PENDING,
+      agentstatus: agentStatus.PENDING,
     };
 
     const superadmin = await User.create(payload);

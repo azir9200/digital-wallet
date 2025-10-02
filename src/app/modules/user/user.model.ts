@@ -11,7 +11,7 @@ const userSchema = new Schema<IUser>(
       enum: Object.values(Role),
       default: Role.USER,
     },
-    agentStatus: {
+    agentstatus: {
       type: String,
       enum: Object.values(agentStatus), // ✅ use enum values
       default: agentStatus.PENDING, // ✅ use enum default

@@ -4,10 +4,7 @@ import { sendResponse } from "../../utils/sendResponse";
 import { TransactionService } from "./transaction.service";
 
 const createTransfer = catchAsync(async (req: Request, res: Response) => {
-  const senderId = req.tokenPayload?.id;
-  if (!senderId) {
-    throw new Error("This user is found");
-  }
+  const senderId = req.user.id;
   const result = await TransactionService.createTransfer(req.body, senderId);
   sendResponse(res, {
     statusCode: 201,
@@ -18,10 +15,8 @@ const createTransfer = catchAsync(async (req: Request, res: Response) => {
 });
 
 const addMoney = catchAsync(async (req: Request, res: Response) => {
-  const userId = req.tokenPayload?.id;
-  if (!userId) {
-    throw new Error("This user is found");
-  }
+  const userId = req.user.id;
+
   const result = await TransactionService.addMoney(userId, req.body);
   sendResponse(res, {
     statusCode: 201,
@@ -31,10 +26,8 @@ const addMoney = catchAsync(async (req: Request, res: Response) => {
   });
 });
 const withdrawMoney = catchAsync(async (req: Request, res: Response) => {
-  const userId = req.tokenPayload?.id;
-  if (!userId) {
-    throw new Error("This user is found");
-  }
+  const userId = req.user.id;
+  console.log("object id", userId, req.user);
   const result = await TransactionService.withdrawMoney(userId, req.body);
   sendResponse(res, {
     statusCode: 201,
@@ -44,10 +37,8 @@ const withdrawMoney = catchAsync(async (req: Request, res: Response) => {
   });
 });
 const cashIn = catchAsync(async (req: Request, res: Response) => {
-  const userId = req.tokenPayload?.id;
-  if (!userId) {
-    throw new Error("This user is found");
-  }
+  const userId = req.user.id;
+
   const result = await TransactionService.cashIn(userId, req.body);
   sendResponse(res, {
     statusCode: 201,
@@ -57,10 +48,8 @@ const cashIn = catchAsync(async (req: Request, res: Response) => {
   });
 });
 const cashOut = catchAsync(async (req: Request, res: Response) => {
-  const agentId = req.tokenPayload?.id;
-  if (!agentId) {
-    throw new Error("This user is found");
-  }
+  const agentId = req.user.id;
+
   const result = await TransactionService.cashOut(agentId, req.body);
   sendResponse(res, {
     statusCode: 201,
@@ -70,10 +59,7 @@ const cashOut = catchAsync(async (req: Request, res: Response) => {
   });
 });
 const getAllTransaction = catchAsync(async (req: Request, res: Response) => {
-  const query = req.query;
-  const result = await TransactionService.getAllTransaction(
-    query as Record<string, string>
-  );
+  const result = await TransactionService.getAllTransaction();
   sendResponse(res, {
     statusCode: 200,
     success: true,
@@ -83,10 +69,8 @@ const getAllTransaction = catchAsync(async (req: Request, res: Response) => {
   });
 });
 const getSingleTransaction = catchAsync(async (req: Request, res: Response) => {
-  const id = req.tokenPayload?.id;
-  if (!id) {
-    throw new Error("This user is found");
-  }
+  const id = req.user.id;
+
   const result = await TransactionService.getSingleTransaction(id);
 
   sendResponse(res, {

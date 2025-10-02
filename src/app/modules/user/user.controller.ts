@@ -80,7 +80,7 @@ const agenApproved = catchAsync(async (req: Request, res: Response) => {
   const payload = req.body;
   console.log(payload, "fdjfasjfds");
 
-  const result = await UserServices.agentApproved(req.params.id, payload);
+  const result = await UserServices.agenApproved(req.params.id, payload);
   sendResponse(res, {
     statusCode: 200,
     success: true,

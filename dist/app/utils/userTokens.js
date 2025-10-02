@@ -15,7 +15,7 @@ const jwt_1 = require("./jwt");
 const user_model_1 = require("../modules/user/user.model");
 const createUserTokens = (user) => {
     const jwtPayload = {
-        id: user.id,
+        id: user._id,
         email: user.email,
         role: user.role,
     };

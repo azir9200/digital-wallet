@@ -11,6 +11,55 @@ import { userSearchableFields } from "./user.constant";
 import { IUser } from "./user.interface";
 import { User } from "./user.model";
 
+// const createUser = async (payload: Partial<IUser>) => {
+//   const { name, email, password } = payload;
+
+//   const isUserExist = await User.findOne({ email });
+
+//   if (isUserExist) {
+//     throw new AppError(httpStatus.BAD_REQUEST, "User Already Exist");
+//   }
+//   const session = await mongoose.startSession();
+
+//   try {
+//     session.startTransaction();
+
+//     const hashedPassword = await bcryptjs.hash(
+//       password as string,
+//       Number(envVars.BCRYPT_SALT_ROUND)
+//     );
+
+//     //user create
+//     const newUser = await User.create(
+//       [
+//         {
+//           name,
+//           email,
+//           password: hashedPassword,
+//         },
+//       ],
+//       { session }
+//     );
+//     await Wallet.create([{ ownerId: newUser[0]._id }], {
+//       session,
+//     });
+
+//     await session.commitTransaction();
+//     session.endSession();
+//     return {
+//       user: newUser[0],
+//     };
+//   } catch (error) {
+//     await session.abortTransaction();
+//     session.endSession();
+//     console.log(error);
+//     throw new AppError(
+//       httpStatus.INTERNAL_SERVER_ERROR,
+//       "Failed to create user and wallet"
+//     );
+//   }
+// };
+
 const createUser = async (payload: Partial<IUser>) => {
   const { name, email, password, role } = payload;
   const isUserExist = await User.findOne({ email });
@@ -128,14 +177,14 @@ const actionUser = async (userId: string, payload: Partial<IUser>) => {
 
   return user;
 };
-const agentApproved = async (id: string, payload: Partial<IUser>) => {
+const agenApproved = async (id: string, payload: Partial<IUser>) => {
   const agent = await User.findOne({ _id: id, role: "AGENT" });
 
   if (!agent) {
     throw new AppError(httpStatus.NOT_FOUND, "Agent not found");
   }
-  if (payload.agentStatus) {
-    agent.agentStatus = payload.agentStatus;
+  if (payload.agentstatus) {
+    agent.agentstatus = payload.agentstatus;
   }
 
   await agent.save();
@@ -296,7 +345,7 @@ export const UserServices = {
   getAllUsers,
   getSingleUser,
   actionUser,
-  agentApproved,
+  agenApproved,
   getAllAgents,
   getMe,
   changePassword,

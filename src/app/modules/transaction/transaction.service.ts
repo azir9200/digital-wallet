@@ -1,12 +1,11 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import httpStatus from "http-status-codes";
-import { ITransaction } from "./transaction.interface";
-import { Transaction } from "./transaction.model";
-import { Wallet } from "../wallet/wallet.model";
 import mongoose from "mongoose";
 import AppError from "../../errorHelpers/AppError";
-import { QueryBuilder } from "../../utils/QueryBuilder";
-import { transactionSearchableFields } from "./transaction.constant";
+import { User } from "../user/user.model";
+import { Wallet } from "../wallet/wallet.model";
+import { ITransaction } from "./transaction.interface";
+import { Transaction } from "./transaction.model";
 
 const createTransfer = async (
   payload: Partial<ITransaction>,
@@ -16,7 +15,6 @@ const createTransfer = async (
 
   const session = await mongoose.startSession();
   session.startTransaction();
-  console.log("session", session);
 
   try {
     // Find sender and receiver wallets
@@ -26,21 +24,20 @@ const createTransfer = async (
     const receiverWallet = await Wallet.findOne({ ownerId: receiver }).session(
       session
     );
-    if (!senderWallet) {
-      throw new AppError(httpStatus.BAD_REQUEST, "sender Wallet not found !");
+    if (
+      senderWallet &&
+      receiverWallet &&
+      senderWallet._id.equals(receiverWallet._id)
+    ) {
+      throw new Error("Sender and Receiver cannot be the same wallet");
     }
-    if (!receiverWallet) {
-      throw new AppError(httpStatus.BAD_REQUEST, "receiver Wallet not found !");
+
+    if (!senderWallet || !receiverWallet) {
+      throw new Error("Sender or receiver wallet not found");
     }
 
     if (senderWallet._id.equals(receiverWallet._id)) {
-      throw new AppError(
-        httpStatus.BAD_REQUEST,
-        "You cannot send money to yourself"
-      );
-    }
-    if (senderWallet.balance! < amount!) {
-      throw new AppError(httpStatus.BAD_REQUEST, "Insufficient balance");
+      throw new Error("Sender and receiver wallets cannot be the same");
     }
 
     if (senderWallet.balance! < amount!) {
@@ -137,10 +134,13 @@ const withdrawMoney = async (
       throw new AppError(httpStatus.NOT_FOUND, "Wallet not found");
     }
 
+    if (Number(existingWallet.balance) < amountNumber) {
+      throw new AppError(httpStatus.BAD_REQUEST, "Insufficient balance");
+    }
+
     existingWallet.balance = Number(existingWallet.balance) - amountNumber;
     await existingWallet.save({ session });
 
-    // Create transaction
     const transaction = await Transaction.create(
       [
         {
@@ -170,8 +170,8 @@ const cashIn = async (agentId: string, payload: Partial<ITransaction>) => {
   try {
     const existingAgent = await Wallet.findOne({ ownerId: agentId })
       .populate({
-        path: "oWnerId",
-        match: { role: "AGENT", agentStatus: "approved", status: "ACTIVE" },
+        path: "ownerId",
+        match: { role: "AGENT", agentstatus: "approved", status: "ACTIVE" },
       })
       .session(session);
 
@@ -185,7 +185,6 @@ const cashIn = async (agentId: string, payload: Partial<ITransaction>) => {
     if (!existingUser) {
       throw new AppError(httpStatus.NOT_FOUND, "User not found");
     }
-    console.log("balance", existingAgent);
     if (existingAgent!.balance! < amount!) {
       throw new AppError(
         httpStatus.NOT_FOUND,
@@ -221,48 +220,69 @@ const cashIn = async (agentId: string, payload: Partial<ITransaction>) => {
     throw error;
   }
 };
-const cashOut = async (userId: string, payload: Partial<ITransaction>) => {
+export const cashOut = async (
+  userId: string,
+  payload: Partial<ITransaction>
+) => {
   const { agentId, amount } = payload;
   const amountNumber = Number(amount);
 
   const session = await mongoose.startSession();
   session.startTransaction();
+
   try {
-    const existingAgent = await Wallet.findOne({ ownerId: agentId })
-      .populate("ownerId")
-      .session(session);
-    // console.log(existingAgent);
-    const existingUser = await Wallet.findOne({ ownerId: userId })
+    // ✅ 1. Find Agent
+    const existingAgent = await User.findById(agentId).session(session);
+    if (!existingAgent) {
+      throw new AppError(httpStatus.NOT_FOUND, "Agent not found");
+    }
+    if (existingAgent.agentstatus !== "approved") {
+      throw new AppError(httpStatus.BAD_REQUEST, "Agent is not approved");
+    }
+
+    // ✅ 2. Find User Wallet (must be active USER)
+    const existingUserWallet = await Wallet.findOne({ ownerId: userId })
       .populate({
         path: "ownerId",
         match: { role: "USER", status: "ACTIVE" },
       })
       .session(session);
 
-    // if (existingAgent?.ownerId.agentStatus != "approved") {
-    //   throw new AppError(httpStatus.NOT_FOUND, "approved agent not found");
-    // }
-
-    if (!existingAgent) {
-      throw new AppError(httpStatus.NOT_FOUND, " agent not found");
-    }
-    if (!existingUser) {
-      throw new AppError(httpStatus.NOT_FOUND, "User not found");
-    }
-
-    if (existingUser!.balance! < amount!) {
+    if (!existingUserWallet) {
       throw new AppError(
         httpStatus.NOT_FOUND,
-        "User has insufficient balance!"
+        "User wallet not found or inactive"
       );
     }
 
-    existingUser!.balance! -= amountNumber!;
-    existingAgent!.balance! += amountNumber!;
-    await existingAgent.save({ session });
-    await existingUser.save({ session });
+    // ✅ 3. Find Agent Wallet
+    const existingAgentWallet = await Wallet.findOne({
+      ownerId: agentId,
+    }).session(session);
+    if (!existingAgentWallet) {
+      throw new AppError(httpStatus.NOT_FOUND, "Agent wallet not found");
+    }
 
-    // Create transaction
+    // ✅ 5. Update Balances
+    if (
+      existingUserWallet.balance === undefined ||
+      existingAgentWallet.balance === undefined
+    ) {
+      throw new Error("Wallet balance is not defined");
+    }
+
+    // Check if user has enough balance
+    if (existingUserWallet.balance < amountNumber) {
+      throw new Error("Insufficient balance");
+    }
+
+    existingUserWallet.balance -= amountNumber;
+    existingAgentWallet.balance += amountNumber;
+
+    await existingUserWallet.save({ session });
+    await existingAgentWallet.save({ session });
+
+    // ✅ 6. Create Transaction Record
     const transaction = await Transaction.create(
       [
         {
@@ -270,12 +290,13 @@ const cashOut = async (userId: string, payload: Partial<ITransaction>) => {
           sender: userId,
           receiver: agentId,
           type: "CASH_OUT",
-          amount,
+          amount: amountNumber,
           status: "COMPLETED",
         },
       ],
       { session }
     );
+
     await session.commitTransaction();
     session.endSession();
     return transaction[0];
@@ -286,26 +307,47 @@ const cashOut = async (userId: string, payload: Partial<ITransaction>) => {
   }
 };
 
-const getAllTransaction = async (query: Record<string, string>) => {
-  const queryBuilder = new QueryBuilder(Transaction.find(), query || {});
-  const transactionData = queryBuilder
-    .search(transactionSearchableFields)
-    .filter()
-    .sort()
-    .fields()
-    .paginate();
+// ✅ Make sure your Transaction model is properly imported
+// import Transaction from "../models/Transaction";
 
-  const [data, meta] = await Promise.all([
-    transactionData.build(),
-    queryBuilder.getMeta(),
-  ]);
+const getAllTransaction = async () => {
+  const result = await Transaction.find({})
+    .populate({
+      path: "userId",
+      select: "name email phone", // specify the fields you want
+    })
+    .populate({
+      path: "receiver",
+      select: "name email phone",
+    })
+    .populate({
+      path: "userId", // if you also want the userId details
+      select: "name email",
+    })
+    .sort({ createdAt: -1 });
+
+  const total = await Transaction.countDocuments();
   return {
-    data,
-    meta,
+    data: result,
+    meta: { total },
   };
 };
+
 const getSingleTransaction = async (id: string) => {
-  const result = await Transaction.find({ userId: id });
+  const result = await Transaction.find({ userId: id })
+    .populate({
+      path: "sender",
+      select: "name email phone", // specify the fields you want
+    })
+    .populate({
+      path: "receiver",
+      select: "name email phone",
+    })
+    .populate({
+      path: "userId", // if you also want the userId details
+      select: "name email",
+    })
+    .sort({ createdAt: -1 });
   return {
     data: result,
   };

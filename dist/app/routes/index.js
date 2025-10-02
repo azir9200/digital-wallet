@@ -6,7 +6,6 @@ const user_route_1 = require("../modules/user/user.route");
 const auth_route_1 = require("../modules/auth/auth.route");
 const wallet_route_1 = require("../modules/wallet/wallet.route");
 const transaction_route_1 = require("../modules/transaction/transaction.route");
-const stats_route_1 = require("../modules/stats/stats.route");
 exports.router = (0, express_1.Router)();
 const moduleRoutes = [
     {
@@ -24,10 +23,6 @@ const moduleRoutes = [
     {
         path: "/transactions",
         route: transaction_route_1.TransactionRoutes,
-    },
-    {
-        path: "/stats",
-        route: stats_route_1.StatsRoutes,
     },
 ];
 moduleRoutes.forEach((route) => {

@@ -16,7 +16,7 @@ export enum agentStatus {
 
 export interface IUser {
   _id?: string;
-  agentStatus: agentStatus;
+  agentstatus: agentStatus;
   name: string;
   email: string;
   password: string;

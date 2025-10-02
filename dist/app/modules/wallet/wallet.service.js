@@ -10,7 +10,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.WalletService = void 0;
-/* eslint-disable @typescript-eslint/no-explicit-any */
 const QueryBuilder_1 = require("../../utils/QueryBuilder");
 const wallet_constant_1 = require("./wallet.constant");
 const wallet_model_1 = require("./wallet.model");
@@ -19,7 +18,7 @@ const wallet_model_1 = require("./wallet.model");
 //   return wallet;
 // };
 const getAllWallet = (query) => __awaiter(void 0, void 0, void 0, function* () {
-    const queryBuilder = new QueryBuilder_1.QueryBuilder(wallet_model_1.Wallet.find(), query || {});
+    const queryBuilder = new QueryBuilder_1.QueryBuilder(wallet_model_1.Wallet.find().populate("ownerId"), query || {});
     const walletData = queryBuilder
         .search(wallet_constant_1.walletSearchableFields)
         .filter()
@@ -37,7 +36,7 @@ const getAllWallet = (query) => __awaiter(void 0, void 0, void 0, function* () {
 });
 const getSingleWallet = (id) => __awaiter(void 0, void 0, void 0, function* () {
     const wallet = yield wallet_model_1.Wallet.findOne({ ownerId: id }).populate("ownerId");
-    // console.log(wallet);
+    console.log(wallet);
     return wallet;
 });
 const updateWallet = (id, payload) => __awaiter(void 0, void 0, void 0, function* () {
@@ -45,6 +44,10 @@ const updateWallet = (id, payload) => __awaiter(void 0, void 0, void 0, function
     if (!existingWallet) {
         throw new Error("Wallet not found.");
     }
+    // const ownerId = id;
+    // if (existingWallet.ownerId.toString() !== ownerId) {
+    //   throw new Error("Unauthorized: You do not own this wallet.");
+    // }
     const allowedFields = [
         "accountType",
         "dailyLimit",
@@ -55,16 +58,15 @@ const updateWallet = (id, payload) => __awaiter(void 0, void 0, void 0, function
     }
     const filteredPayload = {};
     for (const key of allowedFields) {
-        const value = payload[key];
-        if (typeof value !== "undefined") {
-            filteredPayload[key] = value;
+        if (key in payload) {
+            filteredPayload[key] = payload[key];
         }
     }
     const updatedWallet = yield wallet_model_1.Wallet.findByIdAndUpdate(id, payload, {
         new: true,
         runValidators: true,
     });
-    // console.log("updated wallet", updatedWallet);
+    console.log("updated wallet", updatedWallet);
     return updatedWallet;
 });
 const deleteWallet = (id) => __awaiter(void 0, void 0, void 0, function* () {

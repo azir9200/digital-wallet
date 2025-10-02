@@ -1,15 +1,14 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextFunction, Request, Response } from "express";
-import AppError from "../errorHelpers/AppError";
 import { envVars } from "../config/env";
-import { TErrorSources } from "../interfaces/error.types";
-import { handleDuplicateError } from "../helpers/handleDuplicateError";
+import AppError from "../errorHelpers/AppError";
 import { handleCastError } from "../helpers/handleCastError";
-import { handlerZodError } from "../helpers/handlerZodError";
+import { handlerDuplicateError } from "../helpers/handleDuplicateError";
 import { handlerValidationError } from "../helpers/handlerValidationError";
+import { handlerZodError } from "../helpers/handlerZodError";
+import { TErrorSources } from "../interfaces/error.types";
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const globalErrorHandler = (
   err: any,
   req: Request,
@@ -26,7 +25,7 @@ export const globalErrorHandler = (
 
   //Duplicate error
   if (err.code === 1100) {
-    const simplifiedError = handleDuplicateError(err);
+    const simplifiedError = handlerDuplicateError(err);
     statusCode = simplifiedError.statusCode;
     message = simplifiedError.message;
   }

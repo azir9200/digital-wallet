@@ -4,13 +4,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.globalErrorHandler = void 0;
-const AppError_1 = __importDefault(require("../errorHelpers/AppError"));
 const env_1 = require("../config/env");
-const handleDuplicateError_1 = require("../helpers/handleDuplicateError");
+const AppError_1 = __importDefault(require("../errorHelpers/AppError"));
 const handleCastError_1 = require("../helpers/handleCastError");
-const handlerZodError_1 = require("../helpers/handlerZodError");
+const handleDuplicateError_1 = require("../helpers/handleDuplicateError");
 const handlerValidationError_1 = require("../helpers/handlerValidationError");
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const handlerZodError_1 = require("../helpers/handlerZodError");
 const globalErrorHandler = (err, req, res, next) => {
     if (env_1.envVars.NODE_ENV === "development") {
         console.log(err);
@@ -20,7 +19,7 @@ const globalErrorHandler = (err, req, res, next) => {
     let message = "Something Went Wrong!!";
     //Duplicate error
     if (err.code === 1100) {
-        const simplifiedError = (0, handleDuplicateError_1.handleDuplicateError)(err);
+        const simplifiedError = (0, handleDuplicateError_1.handlerDuplicateError)(err);
         statusCode = simplifiedError.statusCode;
         message = simplifiedError.message;
     }

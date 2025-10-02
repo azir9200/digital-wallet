@@ -13,29 +13,71 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserServices = void 0;
+const bcrypt_1 = __importDefault(require("bcrypt"));
 const http_status_codes_1 = __importDefault(require("http-status-codes"));
-const bcryptjs_1 = __importDefault(require("bcryptjs"));
-const AppError_1 = __importDefault(require("../../errorHelpers/AppError"));
-const user_interface_1 = require("./user.interface");
-const user_model_1 = require("./user.model");
-const env_1 = require("../../config/env");
-const wallet_model_1 = require("../wallet/wallet.model");
 const mongoose_1 = __importDefault(require("mongoose"));
+const env_1 = require("../../config/env");
+const AppError_1 = __importDefault(require("../../errorHelpers/AppError"));
 const QueryBuilder_1 = require("../../utils/QueryBuilder");
+const transaction_model_1 = require("../transaction/transaction.model");
+const wallet_model_1 = require("../wallet/wallet.model");
 const user_constant_1 = require("./user.constant");
+const user_model_1 = require("./user.model");
+// const createUser = async (payload: Partial<IUser>) => {
+//   const { name, email, password } = payload;
+//   const isUserExist = await User.findOne({ email });
+//   if (isUserExist) {
+//     throw new AppError(httpStatus.BAD_REQUEST, "User Already Exist");
+//   }
+//   const session = await mongoose.startSession();
+//   try {
+//     session.startTransaction();
+//     const hashedPassword = await bcryptjs.hash(
+//       password as string,
+//       Number(envVars.BCRYPT_SALT_ROUND)
+//     );
+//     //user create
+//     const newUser = await User.create(
+//       [
+//         {
+//           name,
+//           email,
+//           password: hashedPassword,
+//         },
+//       ],
+//       { session }
+//     );
+//     await Wallet.create([{ ownerId: newUser[0]._id }], {
+//       session,
+//     });
+//     await session.commitTransaction();
+//     session.endSession();
+//     return {
+//       user: newUser[0],
+//     };
+//   } catch (error) {
+//     await session.abortTransaction();
+//     session.endSession();
+//     console.log(error);
+//     throw new AppError(
+//       httpStatus.INTERNAL_SERVER_ERROR,
+//       "Failed to create user and wallet"
+//     );
+//   }
+// };
 const createUser = (payload) => __awaiter(void 0, void 0, void 0, function* () {
     const { name, email, password, role } = payload;
     const isUserExist = yield user_model_1.User.findOne({ email });
     if (isUserExist) {
         throw new AppError_1.default(http_status_codes_1.default.BAD_REQUEST, "User Already Exists");
     }
-    if (!password) {
-        throw new AppError_1.default(http_status_codes_1.default.BAD_REQUEST, "Password is required");
-    }
     const session = yield mongoose_1.default.startSession();
     try {
         session.startTransaction();
-        const hashedPassword = yield bcryptjs_1.default.hash(password, Number(env_1.envVars.BCRYPT_SALT_ROUND));
+        if (!password) {
+            throw new Error("Password is required");
+        }
+        const hashedPassword = yield bcrypt_1.default.hash(password, Number(env_1.envVars.BCRYPT_SALT_ROUND));
         const newUser = new user_model_1.User({
             name,
             email,
@@ -101,74 +143,159 @@ const getSingleUser = (id) => __awaiter(void 0, void 0, void 0, function* () {
         data: user,
     };
 });
-const getMe = (id) => __awaiter(void 0, void 0, void 0, function* () {
-    const result = yield user_model_1.User.findOne({ _id: id }).select("-password");
-    return result;
-});
-const actionUser = (id, payload) => __awaiter(void 0, void 0, void 0, function* () {
-    const user = yield user_model_1.User.findById(id);
+const actionUser = (userId, payload) => __awaiter(void 0, void 0, void 0, function* () {
+    const user = yield user_model_1.User.findById(userId);
     if (!user) {
         throw new AppError_1.default(http_status_codes_1.default.NOT_FOUND, "User not found");
     }
-    if (payload.role) {
-        user.role = payload.role;
+    if (payload.status) {
+        user.status = payload.status;
     }
-    // user.status = payload.status;
     yield user.save();
     return user;
 });
-const agentApproved = (id, payload) => __awaiter(void 0, void 0, void 0, function* () {
+const agenApproved = (id, payload) => __awaiter(void 0, void 0, void 0, function* () {
     const agent = yield user_model_1.User.findOne({ _id: id, role: "AGENT" });
     if (!agent) {
         throw new AppError_1.default(http_status_codes_1.default.NOT_FOUND, "Agent not found");
     }
-    if (payload.agentStatus) {
-        agent.agentStatus = payload.agentStatus;
+    if (payload.agentstatus) {
+        agent.agentstatus = payload.agentstatus;
     }
-    // agent.role = payload.role;
     yield agent.save();
     return agent;
 });
-const updateUser = (userId, payload, decodedToken) => __awaiter(void 0, void 0, void 0, function* () {
-    if (decodedToken.role === user_interface_1.Role.USER || decodedToken.role === user_interface_1.Role.AGENT) {
-        if (userId !== decodedToken.userId) {
-            throw new AppError_1.default(401, "You are not authorized");
-        }
-    }
-    const ifUserExist = yield user_model_1.User.findById(userId);
-    if (!ifUserExist) {
-        throw new AppError_1.default(http_status_codes_1.default.NOT_FOUND, "User Not Found");
-    }
-    if (decodedToken.role === user_interface_1.Role.ADMIN &&
-        ifUserExist.role === user_interface_1.Role.SUPER_ADMIN) {
-        throw new AppError_1.default(401, "You are not authorized");
-    }
-    if (payload.role) {
-        if (decodedToken.role === user_interface_1.Role.USER || decodedToken.role === user_interface_1.Role.AGENT) {
-            throw new AppError_1.default(http_status_codes_1.default.FORBIDDEN, "You are not authorized");
-        }
-    }
-    if (payload.password) {
-        payload.password = yield bcryptjs_1.default.hash(payload.password, env_1.envVars.BCRYPT_SALT_ROUND);
-    }
-    const newUpdatedUser = yield user_model_1.User.findByIdAndUpdate(userId, payload, {
-        new: true,
-        runValidators: true,
-    });
-    return newUpdatedUser;
+const getMe = (id) => __awaiter(void 0, void 0, void 0, function* () {
+    const result = yield user_model_1.User.findOne({ _id: id }).select("-password");
+    return result;
 });
-const deleteUser = (id) => __awaiter(void 0, void 0, void 0, function* () {
-    yield wallet_model_1.Wallet.findByIdAndDelete(id);
-    return null;
+const changePassword = (userData, payload) => __awaiter(void 0, void 0, void 0, function* () {
+    const user = yield user_model_1.User.findOne({ email: userData.email });
+    if (!user) {
+        throw new AppError_1.default(http_status_codes_1.default.NOT_FOUND, "This user is not found !");
+    }
+    // check if user is deleted
+    if (user.isDeleted) {
+        throw new AppError_1.default(http_status_codes_1.default.FORBIDDEN, "This user is deleted!");
+    }
+    // check if old password is correct
+    const isMatched = yield bcrypt_1.default.compare(payload.oldPassword, user.password);
+    if (!isMatched) {
+        throw new AppError_1.default(http_status_codes_1.default.FORBIDDEN, "Password does not match!");
+    }
+    // hash new password
+    const newHashedPassword = yield bcrypt_1.default.hash(payload.newPassword, Number(10));
+    // update password
+    yield user_model_1.User.findOneAndUpdate({ email: userData.email, role: userData.role }, { password: newHashedPassword }, { new: true });
+    return { message: "Password changed successfully" };
+});
+const monthNames = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+];
+const getChartData = () => __awaiter(void 0, void 0, void 0, function* () {
+    // ১) Transaction Volume (amount sum + count)
+    const transactionAgg = yield transaction_model_1.Transaction.aggregate([
+        { $match: { status: "COMPLETED" } },
+        {
+            $group: {
+                _id: { $month: "$createdAt" },
+                volume: { $sum: "$amount" },
+                transactions: { $sum: 1 },
+            },
+        },
+        { $sort: { _id: 1 } },
+    ]);
+    const transactionVolume = transactionAgg.map((item) => ({
+        month: monthNames[item._id - 1],
+        volume: item.volume,
+        transactions: item.transactions,
+    }));
+    // ২) User Growth (users + agents per month)
+    const userAgg = yield user_model_1.User.aggregate([
+        {
+            $group: {
+                _id: { $month: "$createdAt" },
+                users: { $sum: { $cond: [{ $eq: ["$role", "USER"] }, 1, 0] } },
+                agents: { $sum: { $cond: [{ $eq: ["$role", "AGENT"] }, 1, 0] } },
+            },
+        },
+        { $sort: { _id: 1 } },
+    ]);
+    const userGrowth = userAgg.map((item) => ({
+        month: monthNames[item._id - 1],
+        users: item.users,
+        agents: item.agents,
+    }));
+    return { transactionVolume, userGrowth };
+});
+const getAdminStats = () => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
+    // Total Users
+    const totalUsers = yield user_model_1.User.countDocuments({ isDeleted: false });
+    // Total Agents (approved only)
+    const totalAgents = yield user_model_1.User.countDocuments({
+        role: "AGENT",
+        agentstatus: "approved",
+        isDeleted: false,
+    });
+    // Total Transactions
+    const totalTransactions = yield transaction_model_1.Transaction.countDocuments();
+    // Total Volume
+    const totalVolumeAgg = yield transaction_model_1.Transaction.aggregate([
+        { $match: { status: "COMPLETED" } },
+        { $group: { _id: null, total: { $sum: "$amount" } } },
+    ]);
+    const totalVolume = ((_a = totalVolumeAgg[0]) === null || _a === void 0 ? void 0 : _a.total) || 0;
+    // System Fees
+    const systemFeesAgg = yield transaction_model_1.Transaction.aggregate([
+        { $match: { status: "COMPLETED" } },
+        { $group: { _id: null, total: { $sum: "$fee" } } },
+    ]);
+    const systemFees = ((_b = systemFeesAgg[0]) === null || _b === void 0 ? void 0 : _b.total) || 0;
+    return {
+        totalUsers,
+        totalAgents,
+        totalTransactions,
+        totalVolume,
+        systemFees,
+    };
+});
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const UserProfileUpdate = (id, body) => __awaiter(void 0, void 0, void 0, function* () {
+    const user = yield user_model_1.User.findById(id);
+    if (!user) {
+        throw new AppError_1.default(http_status_codes_1.default.NOT_FOUND, "user not found!");
+    }
+    const result = yield user_model_1.User.findByIdAndUpdate(id, body, {
+        new: true, // return updated doc
+        runValidators: true, // validate against schema
+    });
+    if (!result) {
+        throw new AppError_1.default(http_status_codes_1.default.NOT_FOUND, "User not found");
+    }
+    return result;
 });
 exports.UserServices = {
     createUser,
     getAllUsers,
-    getAllAgents,
     getSingleUser,
-    getMe,
     actionUser,
-    agentApproved,
-    updateUser,
-    deleteUser,
+    agenApproved,
+    getAllAgents,
+    getMe,
+    changePassword,
+    UserProfileUpdate,
+    getChartData,
+    getAdminStats,
 };

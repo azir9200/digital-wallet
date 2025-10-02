@@ -13,10 +13,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserControllers = void 0;
+const http_status_codes_1 = __importDefault(require("http-status-codes"));
 const catchAsync_1 = require("../../utils/catchAsync");
 const sendResponse_1 = require("../../utils/sendResponse");
 const user_service_1 = require("./user.service");
-const http_status_codes_1 = __importDefault(require("http-status-codes"));
 const createUser = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const user = yield user_service_1.UserServices.createUser(req.body);
     (0, sendResponse_1.sendResponse)(res, {
@@ -58,12 +58,20 @@ const getSingleUser = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 
         data: result.data,
     });
 }));
+const actionUser = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const userId = req.params.id;
+    const payload = req.body;
+    const user = yield user_service_1.UserServices.actionUser(userId, payload);
+    (0, sendResponse_1.sendResponse)(res, {
+        success: true,
+        statusCode: http_status_codes_1.default.CREATED,
+        message: "User Updated Successfully",
+        data: user,
+    });
+}));
 const getMe = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
-    const id = (_a = req.tokenPayload) === null || _a === void 0 ? void 0 : _a.id;
-    if (!id) {
-        throw new Error("This user is found");
-    }
+    const id = (_a = req === null || req === void 0 ? void 0 : req.user) === null || _a === void 0 ? void 0 : _a.id;
     const result = yield user_service_1.UserServices.getMe(id);
     (0, sendResponse_1.sendResponse)(res, {
         success: true,
@@ -72,20 +80,10 @@ const getMe = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 
         data: result,
     });
 }));
-const actionUser = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const id = req.params.id;
+const agenApproved = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const payload = req.body;
-    const user = yield user_service_1.UserServices.actionUser(id, payload);
-    (0, sendResponse_1.sendResponse)(res, {
-        success: true,
-        statusCode: http_status_codes_1.default.CREATED,
-        message: "User Updated Successfully",
-        data: user,
-    });
-}));
-const agentApproved = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const payload = req.body;
-    const result = yield user_service_1.UserServices.agentApproved(req.params.id, payload);
+    console.log(payload, "fdjfasjfds");
+    const result = yield user_service_1.UserServices.agenApproved(req.params.id, payload);
     (0, sendResponse_1.sendResponse)(res, {
         statusCode: 200,
         success: true,
@@ -93,24 +91,41 @@ const agentApproved = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 
         data: result,
     });
 }));
-const updateUser = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const userId = req.params.id;
-    const verifiedToken = req.user;
+const changePassword = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const payload = req.body;
-    const user = yield user_service_1.UserServices.updateUser(userId, payload, verifiedToken);
+    const result = yield user_service_1.UserServices.changePassword(req.user, payload);
     (0, sendResponse_1.sendResponse)(res, {
+        statusCode: 200,
         success: true,
-        statusCode: http_status_codes_1.default.CREATED,
-        message: "User Updated Successfully",
-        data: user,
+        message: "Sucessfull Password Change",
+        data: result,
     });
 }));
-const deleteUser = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const result = yield user_service_1.UserServices.deleteUser(req.params.id);
+const UserProfileUpdate = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const payload = req.body;
+    const result = yield user_service_1.UserServices.UserProfileUpdate(req.user.id, payload);
     (0, sendResponse_1.sendResponse)(res, {
         statusCode: 200,
         success: true,
         message: "Your Wallet is deleted",
+        data: result,
+    });
+}));
+const getChartData = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const result = yield user_service_1.UserServices.getChartData();
+    (0, sendResponse_1.sendResponse)(res, {
+        statusCode: 200,
+        success: true,
+        message: "Chart data fetched successfully",
+        data: result,
+    });
+}));
+const getAdminStats = (0, catchAsync_1.catchAsync)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const result = yield user_service_1.UserServices.getAdminStats();
+    (0, sendResponse_1.sendResponse)(res, {
+        statusCode: 200,
+        success: true,
+        message: "Admin stats fetched successfully",
         data: result,
     });
 }));
@@ -118,10 +133,12 @@ exports.UserControllers = {
     createUser,
     getAllUsers,
     getSingleUser,
-    getMe,
     actionUser,
-    agentApproved,
+    agenApproved,
     getAllAgents,
-    updateUser,
-    deleteUser,
+    getMe,
+    changePassword,
+    UserProfileUpdate,
+    getChartData,
+    getAdminStats,
 };
